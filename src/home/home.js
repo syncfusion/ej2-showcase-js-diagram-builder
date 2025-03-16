@@ -259,7 +259,7 @@ window.home = function () {
         getConnectorDefaults: function (connector, diagram) {
             var connector1 = {
                 annotations: [
-                    { content: '', style: { fill: '#ffffff' } }
+                    { content: '', style: { fill: 'transparent' } }
                 ],
                 style: { strokeWidth: 2 }
             };
@@ -721,6 +721,27 @@ window.home = function () {
     lineJumpSize.appendTo('#lineJumpSize');
     selectedItem.connectorProperties.lineJumpSize = lineJumpSize;
 
+    var SegmentEditing = new ej.buttons.CheckBox({ label: 'Segment Editing',
+    change: function(args) {
+        if(diagram.selectedItems.connectors){
+            if(args.checked == true){
+                for(i=0;i<diagram.selectedItems.connectors.length;i++){
+                    diagram.selectedItems.connectors[i].constraints = ej.diagrams.ConnectorConstraints.Default | ej.diagrams.ConnectorConstraints.DragSegmentThumb;
+                }
+            }
+            else{
+                for(i=0;i<diagram.selectedItems.connectors.length;i++){
+                diagram.selectedItems.connectors[i].constraints = ej.diagrams.ConnectorConstraints.Default & ~(ej.diagrams.ConnectorConstraints.DragSegmentThumb);
+                }
+            }
+            diagram.dataBind();
+        }
+       
+       }
+    });
+    SegmentEditing.appendTo('#SegmentEditing');
+    selectedItem.connectorProperties.SegmentEditing = SegmentEditing; 
+    
     var default1 = new ej.inputs.Slider({
         min: 0,
         max: 100,
@@ -2045,6 +2066,9 @@ function drawConnectorChange (args) {
         diagram.drawingObject = { type: 'Orthogonal', style: { strokeWidth: 2 } };
     } else if (args.item.text === 'Bezier') {
         diagram.drawingObject = { type: 'Bezier', style: { strokeWidth: 2 } };
+    }
+    else if(args.item.text === 'FreeHand'){
+        diagram.drawingObject = { type: 'Freehand', style: { strokeWidth: 2 } };
     }
     diagram.tool = ej.diagrams.DiagramTools.ContinuousDraw;
     diagram.clearSelection();

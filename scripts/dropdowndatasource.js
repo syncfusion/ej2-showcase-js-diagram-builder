@@ -96,7 +96,8 @@ var DropDownDataSources = (function () {
         var drawConnectorsList = [
             { iconCss: 'sf-icon-StraightLine', text: 'Straight Line' },
             { iconCss: 'sf-icon-ConnectorMode', text: 'Orthogonal Line' },
-            { iconCss: 'sf-icon-BeizerLine', text: 'Bezier' }
+            { iconCss: 'sf-icon-BeizerLine', text: 'Bezier' },
+            { iconCss: 'sf-icon-free_hand', text: 'FreeHand' }
         ];
         return drawConnectorsList;
     };
