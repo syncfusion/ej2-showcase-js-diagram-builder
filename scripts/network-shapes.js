@@ -1,8 +1,7 @@
-var NetworkShapes = (function () {
-    function NetworkShapes() {
-    }
-    NetworkShapes.prototype.getNetworkShapes = function () {
-        var networkShapes = [
+class NetworkShapes {
+
+    getShapes() {
+        const networkShapes = [
             {
                 "id": "uKVMSwitch30z1R8xr",
                 "shape": {
@@ -2934,12 +2933,15 @@ var NetworkShapes = (function () {
                 "children": ["WirelessModem30x5tgFY", "WirelessModem314Zr4Fd", "WirelessModem32U4bpWP", "WirelessModem33hRRY76", "WirelessModem34vFofLO"]
             }
         ];
-        for (var i = 0; i < networkShapes.length; i++) {
-            if (!networkShapes[i].children) {
-                networkShapes[i].constraints = ej.diagrams.NodeConstraints.Default & ~ej.diagrams.NodeConstraints.Select;
+
+        networkShapes.forEach(shape => {
+            if (!shape.children) {
+                shape.constraints = ej.diagrams.NodeConstraints.Default & ~ej.diagrams.NodeConstraints.Select;
             }
-        }
+        });
+
         return networkShapes;
-    };
-    return NetworkShapes;
-}());
+    }
+}
+
+export default NetworkShapes;

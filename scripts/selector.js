@@ -1,9 +1,12 @@
 /**
  * Selector Handler
  */
-
-var NodeProperties = (function () {
-    function NodeProperties() {
+import UtilityMethods  from './utilitymethods';
+import CustomContextMenuItems from './customcontextmenuitems';
+import { selectedItem } from '../index.js';
+import {MindMapUtilityMethods} from './mindmap';
+class NodeProperties {
+    constructor() {
         this.m_offsetX = 0;
         this.m_offsetY = 0;
         this.m_width = 0;
@@ -21,13 +24,14 @@ var NodeProperties = (function () {
         this.m_gradientColor = '#ffffff';
     }
 
-    NodeProperties.prototype.triggerPropertyChange = function (propertyName, propertyValue) {
+    triggerPropertyChange(propertyName, propertyValue) {
         if (!ej.base.isNullOrUndefined(this.propertyChange)) {
-            this.propertyChange.call(this, { propertyName: propertyName, propertyValue: propertyValue });
+            this.propertyChange.call(this, { propertyName, propertyValue });
         }
-    };
-    NodeProperties.prototype.getGradient = function (node) {
-        var gradientValue = this.getGradientDirectionValue(selectedItem.nodeProperties.gradientDirection.value);
+    }
+
+    getGradient(node) {
+        const gradientValue = this.getGradientDirectionValue(selectedItem.nodeProperties.gradientDirection.value);
         node.style.gradient = {
             type: 'Linear',
             x1: gradientValue.x1, x2: gradientValue.x2, y1: gradientValue.y1, y2: gradientValue.y2,
@@ -36,55 +40,50 @@ var NodeProperties = (function () {
                 { color: this.getColor(selectedItem.nodeProperties.gradientColor.value), offset: 1 }
             ]
         };
-    };
-    NodeProperties.prototype.getGradientDirectionValue = function (direction) {
-        var gradientValue = {};
-        var x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    }
+
+    getGradientDirectionValue(direction) {
+        let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
         if (direction === 'LeftToRight') {
             x1 = 100;
-        }
-        else if (direction === 'BottomToTop') {
+        } else if (direction === 'BottomToTop') {
             y2 = 100;
-        }
-        else if (direction === 'RightToLeft') {
+        } else if (direction === 'RightToLeft') {
             x2 = 100;
-        }
-        else {
+        } else {
             y1 = 100;
         }
-        gradientValue = { x1: x1, y1: y1, x2: x2, y2: y2 };
-        return gradientValue;
-    };
-    NodeProperties.prototype.getColor = function (colorName) {
+        return { x1, y1, x2, y2 };
+    }
+
+    getColor(colorName) {
         if (window.navigator.msSaveBlob && colorName.length === 9) {
             return colorName.substring(0, 7);
         }
         return colorName;
-    };
+    }
+}
 
-    return NodeProperties;
-}());
-
-var ConnectorProperties = (function () {
-    function ConnectorProperties() {
+class ConnectorProperties {
+    constructor() {
         this.m_lineColor = '#ffffff';
     }
-    ConnectorProperties.prototype.triggerPropertyChange = function (propertyName, propertyValue) {
+    triggerPropertyChange(propertyName, propertyValue) {
         if (!ej.base.isNullOrUndefined(this.propertyChange)) {
-            this.propertyChange.call(this, { propertyName: propertyName, propertyValue: propertyValue });
+            this.propertyChange.call(this, { propertyName, propertyValue });
         }
-    };
-    return ConnectorProperties;
-}());
+    }
+}
 
-var TextProperties = (function () {
-    function TextProperties() {
+class TextProperties {
+    constructor() {
         this.m_textPosition = '';
         this.m_fontFamily = 'Arial';
         this.m_fontColor = '#ffffff';
         this.textPositionDataSource = this.getNodeTextPositions();
     }
-    TextProperties.prototype.getNodeTextPositions = function () {
+
+    getNodeTextPositions() {
         return [
             { text: 'TopLeft', value: 'TopLeft' }, { text: 'TopCenter', value: 'TopCenter' },
             { text: 'TopRight', value: 'TopRight' }, { text: 'MiddleLeft', value: 'MiddleLeft' },
@@ -92,62 +91,56 @@ var TextProperties = (function () {
             { text: 'BottomLeft', value: 'BottomLeft' }, { text: 'BottomCenter', value: 'BottomCenter' },
             { text: 'BottomRight', value: 'BottomRight' },
         ];
-    };
-    TextProperties.prototype.getConnectorTextPositions = function () {
+    }
+
+    getConnectorTextPositions() {
         return [
             { text: 'Before', value: 'Before' }, { text: 'Center', value: 'Center' },
             { text: 'After', value: 'After' },
         ];
-    };
-    TextProperties.prototype.triggerPropertyChange = function (propertyName, propertyValue) {
-        if (!ej.base.isNullOrUndefined(this.propertyChange)) {
-            this.propertyChange.call(this, { propertyName: propertyName, propertyValue: propertyValue });
-        }
-    };
-    return TextProperties;
-}());
+    }
 
-var ExportSettings = (function () {
-    function ExportSettings() {
+    triggerPropertyChange(propertyName, propertyValue) {
+        if (!ej.base.isNullOrUndefined(this.propertyChange)) {
+            this.propertyChange.call(this, { propertyName, propertyValue });
+        }
+    }
+}
+
+class ExportSettings {
+    constructor() {
         this.m_fileName = 'Diagram';
         this.m_format = 'JPG';
         this.m_region = 'PageSettings';
     }
-    Object.defineProperty(ExportSettings.prototype, "fileName", {
-        get: function () {
-            return this.m_fileName;
-        },
-        set: function (fileName) {
-            this.m_fileName = fileName;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ExportSettings.prototype, "format", {
-        get: function () {
-            return this.m_format;
-        },
-        set: function (format) {
-            this.m_format = format;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(ExportSettings.prototype, "region", {
-        get: function () {
-            return this.m_region;
-        },
-        set: function (region) {
-            this.m_region = region;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    return ExportSettings;
-}());
 
-var PrintSettings = (function () {
-    function PrintSettings() {
+    get fileName() {
+        return this.m_fileName;
+    }
+
+    set fileName(fileName) {
+        this.m_fileName = fileName;
+    }
+
+    get format() {
+        return this.m_format;
+    }
+
+    set format(format) {
+        this.m_format = format;
+    }
+
+    get region() {
+        return this.m_region;
+    }
+
+    set region(region) {
+        this.m_region = region;
+    }
+}
+
+class PrintSettings {
+    constructor() {
         this.m_region = 'PageSettings';
         this.m_pageWidth = 0;
         this.m_pageHeight = 0;
@@ -156,89 +149,73 @@ var PrintSettings = (function () {
         this.m_multiplePage = false;
         this.m_paperSize = 'Letter';
     }
-    Object.defineProperty(PrintSettings.prototype, "region", {
-        get: function () {
-            return this.m_region;
-        },
-        set: function (region) {
-            this.m_region = region;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(PrintSettings.prototype, "pageWidth", {
-        get: function () {
-            return this.m_pageWidth;
-        },
-        set: function (pageWidth) {
-            this.m_pageWidth = pageWidth;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(PrintSettings.prototype, "pageHeight", {
-        get: function () {
-            return this.m_pageHeight;
-        },
-        set: function (pageHeight) {
-            this.m_pageHeight = pageHeight;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(PrintSettings.prototype, "isPortrait", {
-        get: function () {
-            return this.m_isPortrait;
-        },
-        set: function (isPortrait) {
-            this.m_isPortrait = isPortrait;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(PrintSettings.prototype, "isLandscape", {
-        get: function () {
-            return this.m_isLandscape;
-        },
-        set: function (isLandscape) {
-            this.m_isLandscape = isLandscape;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(PrintSettings.prototype, "multiplePage", {
-        get: function () {
-            return this.m_multiplePage;
-        },
-        set: function (multiplePage) {
-            this.m_multiplePage = multiplePage;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(PrintSettings.prototype, "paperSize", {
-        get: function () {
-            return this.m_paperSize;
-        },
-        set: function (paperSize) {
-            this.m_paperSize = paperSize;
-            document.getElementById('printCustomSize').style.display = 'none';
-            document.getElementById('printOrientation').style.display = 'none';
-            if (paperSize === 'Custom') {
-                document.getElementById('printCustomSize').style.display = '';
-            }
-            else {
-                document.getElementById('printOrientation').style.display = '';
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    return PrintSettings;
-}());
 
-var PageSettings = (function () {
-    function PageSettings() {
+    get region() {
+        return this.m_region;
+    }
+
+    set region(region) {
+        this.m_region = region;
+    }
+
+    get pageWidth() {
+        return this.m_pageWidth;
+    }
+
+    set pageWidth(pageWidth) {
+        this.m_pageWidth = pageWidth;
+    }
+
+    get pageHeight() {
+        return this.m_pageHeight;
+    }
+
+    set pageHeight(pageHeight) {
+        this.m_pageHeight = pageHeight;
+    }
+
+    get isPortrait() {
+        return this.m_isPortrait;
+    }
+
+    set isPortrait(isPortrait) {
+        this.m_isPortrait = isPortrait;
+    }
+
+    get isLandscape() {
+        return this.m_isLandscape;
+    }
+
+    set isLandscape(isLandscape) {
+        this.m_isLandscape = isLandscape;
+    }
+
+    get multiplePage() {
+        return this.m_multiplePage;
+    }
+
+    set multiplePage(multiplePage) {
+        this.m_multiplePage = multiplePage;
+    }
+
+    get paperSize() {
+        return this.m_paperSize;
+    }
+
+    set paperSize(paperSize) {
+        this.m_paperSize = paperSize;
+        document.getElementById('printCustomSize').style.display = 'none';
+        document.getElementById('printOrientation').style.display = 'none';
+        if (paperSize === 'Custom') {
+            document.getElementById('printCustomSize').style.display = '';
+        } else {
+            document.getElementById('printOrientation').style.display = '';
+        }
+    }
+}
+
+class PageSettings {
+    constructor() {
         this.pageWidth = 1056;
         this.pageHeight = 816;
         this.backgroundColor = '#ffffff';
@@ -247,18 +224,16 @@ var PageSettings = (function () {
         this.paperSize = 'Letter';
         this.pageBreaks = false;
     }
-    return PageSettings;
-}());
+}
 
-var ScrollSettings = (function () {
-    function ScrollSettings() {
+class ScrollSettings {
+    constructor() {
         this.currentZoom = '100%';
     }
-    return ScrollSettings;
-}());
+}
 
-var MindMapSettings = (function () {
-    function MindMapSettings() {
+class MindMapSettings {
+    constructor() {
         this.m_levelType = 'Level0';
         this.m_fill = 'white';
         this.m_stroke = 'white';
@@ -267,148 +242,126 @@ var MindMapSettings = (function () {
         this.m_fontFamily = 'Arial';
         this.m_fontColor = '#ffffff';
     }
-    Object.defineProperty(MindMapSettings.prototype, "levelType", {
-        get: function () {
-            return this.m_levelType;
-        },
-        set: function (levelType) {
-            if (this.m_levelType !== levelType) {
-                this.m_levelType = levelType;
-                this.triggerPropertyChange('levelType', levelType);
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(MindMapSettings.prototype, "fill", {
-        get: function () {
-            return this.m_fill;
-        },
-        set: function (fill) {
-            if (this.m_fill !== fill) {
-                this.m_fill = fill;
-                this.triggerPropertyChange('fill', fill);
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(MindMapSettings.prototype, "stroke", {
-        get: function () {
-            return this.m_stroke;
-        },
-        set: function (stroke) {
-            if (this.m_stroke !== stroke) {
-                this.m_stroke = stroke;
-                this.triggerPropertyChange('stroke', stroke);
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(MindMapSettings.prototype, "strokeStyle", {
-        get: function () {
-            return this.m_strokeStyle;
-        },
-        set: function (strokeStyle) {
-            if (this.m_strokeStyle !== strokeStyle) {
-                this.m_strokeStyle = strokeStyle;
-                this.triggerPropertyChange('strokeStyle', strokeStyle);
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(MindMapSettings.prototype, "strokeWidth", {
-        get: function () {
-            return this.m_strokeWidth;
-        },
-        set: function (strokeWidth) {
-            if (this.m_strokeWidth !== strokeWidth) {
-                this.m_strokeWidth = strokeWidth;
-                this.triggerPropertyChange('strokeWidth', strokeWidth);
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(MindMapSettings.prototype, "opacity", {
-        get: function () {
-            return this.m_opacity;
-        },
-        set: function (opacity) {
-            if (this.m_opacity !== opacity) {
-                this.m_opacity = opacity;
-                this.triggerPropertyChange('opacity', opacity);
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(MindMapSettings.prototype, "fontFamily", {
-        get: function () {
-            return this.m_fontFamily;
-        },
-        set: function (fontFamily) {
-            if (this.m_fontFamily !== fontFamily) {
-                this.m_fontFamily = fontFamily;
-                this.triggerPropertyChange('fontFamily', fontFamily);
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(MindMapSettings.prototype, "fontSize", {
-        get: function () {
-            return this.m_fontSize;
-        },
-        set: function (fontSize) {
-            if (this.m_fontSize !== fontSize) {
-                this.m_fontSize = fontSize;
-                this.triggerPropertyChange('fontSize', fontSize);
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(MindMapSettings.prototype, "fontColor", {
-        get: function () {
-            return this.m_fontColor;
-        },
-        set: function (fontColor) {
-            if (this.m_fontColor !== fontColor) {
-                this.m_fontColor = fontColor;
-                this.triggerPropertyChange('fontColor', fontColor);
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(MindMapSettings.prototype, "textOpacity", {
-        get: function () {
-            return this.m_textOpacity;
-        },
-        set: function (textOpacity) {
-            if (this.m_textOpacity !== textOpacity) {
-                this.m_textOpacity = textOpacity;
-                this.triggerPropertyChange('textOpacity', textOpacity);
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
 
-    MindMapSettings.prototype.triggerPropertyChange = function (propertyName, propertyValue) {
-        if (!ej.base.isNullOrUndefined(this.propertyChange)) {
-            this.propertyChange.call(this, { propertyName: propertyName, propertyValue: propertyValue });
+    get levelType() {
+        return this.m_levelType;
+    }
+
+    set levelType(levelType) {
+        if (this.m_levelType !== levelType) {
+            this.m_levelType = levelType;
+            this.triggerPropertyChange('levelType', levelType);
         }
-    };
+    }
 
-    return MindMapSettings;
-}());
+    get fill() {
+        return this.m_fill;
+    }
 
-var OrgDataSettings = (function () {
-    function OrgDataSettings() {
+    set fill(fill) {
+        if (this.m_fill !== fill) {
+            this.m_fill = fill;
+            this.triggerPropertyChange('fill', fill);
+        }
+    }
+
+    get stroke() {
+        return this.m_stroke;
+    }
+
+    set stroke(stroke) {
+        if (this.m_stroke !== stroke) {
+            this.m_stroke = stroke;
+            this.triggerPropertyChange('stroke', stroke);
+        }
+    }
+
+    get strokeStyle() {
+        return this.m_strokeStyle;
+    }
+
+    set strokeStyle(strokeStyle) {
+        if (this.m_strokeStyle !== strokeStyle) {
+            this.m_strokeStyle = strokeStyle;
+            this.triggerPropertyChange('strokeStyle', strokeStyle);
+        }
+    }
+
+    get strokeWidth() {
+        return this.m_strokeWidth;
+    }
+
+    set strokeWidth(strokeWidth) {
+        if (this.m_strokeWidth !== strokeWidth) {
+            this.m_strokeWidth = strokeWidth;
+            this.triggerPropertyChange('strokeWidth', strokeWidth);
+        }
+    }
+
+    get opacity() {
+        return this.m_opacity;
+    }
+
+    set opacity(opacity) {
+        if (this.m_opacity !== opacity) {
+            this.m_opacity = opacity;
+            this.triggerPropertyChange('opacity', opacity);
+        }
+    }
+
+    get fontFamily() {
+        return this.m_fontFamily;
+    }
+
+    set fontFamily(fontFamily) {
+        if (this.m_fontFamily !== fontFamily) {
+            this.m_fontFamily = fontFamily;
+            this.triggerPropertyChange('fontFamily', fontFamily);
+        }
+    }
+
+    get fontSize() {
+        return this.m_fontSize;
+    }
+
+    set fontSize(fontSize) {
+        if (this.m_fontSize !== fontSize) {
+            this.m_fontSize = fontSize;
+            this.triggerPropertyChange('fontSize', fontSize);
+        }
+    }
+
+    get fontColor() {
+        return this.m_fontColor;
+    }
+
+    set fontColor(fontColor) {
+        if (this.m_fontColor !== fontColor) {
+            this.m_fontColor = fontColor;
+            this.triggerPropertyChange('fontColor', fontColor);
+        }
+    }
+
+    get textOpacity() {
+        return this.m_textOpacity;
+    }
+
+    set textOpacity(textOpacity) {
+        if (this.m_textOpacity !== textOpacity) {
+            this.m_textOpacity = textOpacity;
+            this.triggerPropertyChange('textOpacity', textOpacity);
+        }
+    }
+
+    triggerPropertyChange(propertyName, propertyValue) {
+        if (!ej.base.isNullOrUndefined(this.propertyChange)) {
+            this.propertyChange.call(this, { propertyName, propertyValue });
+        }
+    }
+}
+
+class OrgDataSettings {
+    constructor() {
         this.dataSourceColumns = [];
         this.id = '';
         this.parent = '';
@@ -420,11 +373,11 @@ var OrgDataSettings = (function () {
         this.extensionType = '.csv';
         this.buttonContent = 'Download Example CSV';
     }
-    return OrgDataSettings;
-}());
+}
 
-var SelectorViewModel = (function () {
-    function SelectorViewModel() {
+class SelectorViewModel {
+    constructor() {
+        
         this.selectedDiagram = null;
         this.isCopyLayoutElement = false;
         this.currentDiagramName = '';
@@ -450,22 +403,23 @@ var SelectorViewModel = (function () {
         this.connectorProperties.propertyChange = this.connectorPropertyChange.bind(this);
         this.textProperties.propertyChange = this.textPropertyChange.bind(this);
         this.mindmapSettings.propertyChange = this.mindMapPropertyChange.bind(this);
+
     }
-    SelectorViewModel.prototype.randomIdGenerator = function () {
+    randomIdGenerator() {
         return Math.random().toString(36).replace(/[^a-z]+/g, '').substr(2, 10);
-    };
-    SelectorViewModel.prototype.getAbsolutePath = function () {
+    }
+    getAbsolutePath() {
         return window.location.pathname;
-    };
-    SelectorViewModel.prototype.nodePropertyChange = function (args) {
+    }
+    nodePropertyChange(args) {
         if (!selectedItem.preventPropertyChange) {
-            var diagram = selectedItem.selectedDiagram;
+            const diagram = selectedItem.selectedDiagram;
             if (diagram) {
                 if (diagram.selectedItems.nodes.length > 0) {
-                    var selectedNodes = diagram.selectedItems.nodes;
-                    for (var i = 0; i < selectedNodes.length; i++) {
-                        var node = selectedNodes[i];
-                        var propertyName1 = args.propertyName.toString().toLowerCase();
+                    const selectedNodes = diagram.selectedItems.nodes;
+                    for (let i = 0; i < selectedNodes.length; i++) {
+                        const node = selectedNodes[i];
+                        const propertyName1 = args.propertyName.toString().toLowerCase();
                         switch (propertyName1) {
                             case 'offsetx':
                                 node.offsetX = selectedItem.nodeProperties.offsetX.value;
@@ -488,21 +442,20 @@ var SelectorViewModel = (function () {
                         }
                         if (!node.children) {
                             this.applyNodeStyle(propertyName1, node, args.propertyValue);
-                        }
-                        else {
-                            for (var j = 0; j < node.children.length; j++) {
+                        } else {
+                            for (let j = 0; j < node.children.length; j++) {
                                 this.applyNodeStyle(propertyName1, diagram.getObject(node.children[j]), args.propertyValue);
                             }
                         }
                     }
-                    this.isModified = true;
+                    selectedItem.isModified = true;
                 }
                 if (diagram.connectors.length > 0) {
-                    var selectedNodes = diagram.selectedItems.connectors;
-                    for (var i = 0; i < selectedNodes.length; i++) {
+                    const selectedNodes = diagram.selectedItems.connectors;
+                    for (let i = 0; i < selectedNodes.length; i++) {
                         switch (args.propertyName.toString().toLowerCase()) {
                             case 'strokecolor':
-                                selectedItem.connectorProperties.lineColor.value = selectedItem.getColor(selectedItem.nodeProperties.strokeColor.value);
+                                selectedItem.connectorProperties.lineColor.value = this.getColor(selectedItem.nodeProperties.strokeColor.value);
                                 break;
                             case 'strokewidth':
                                 selectedItem.connectorProperties.lineWidth.value = selectedItem.nodeProperties.strokeWidth.value;
@@ -520,13 +473,14 @@ var SelectorViewModel = (function () {
                 diagram.dataBind();
             }
         }
-    };
-    SelectorViewModel.prototype.applyNodeStyle = function (propertyName, node, value) {
-        var addInfo = node.addInfo || {};
+    }
+    applyNodeStyle(propertyName, node, value) {
+        const addInfo = node.addInfo || {};
         switch (propertyName) {
             case 'fillcolor':
                 node.style.fill = this.getColor(value);
-                if (value && value.checked) {
+                let gradientCheckBox = document.getElementById('gradient').ej2_instances[0];
+                if (value && gradientCheckBox.checked) {
                     NodeProperties.prototype.getGradient(node);
                 }
                 break;
@@ -546,8 +500,7 @@ var SelectorViewModel = (function () {
             case 'gradient':
                 if (value && !value.checked) {
                     node.style.gradient.type = 'None';
-                }
-                else {
+                } else {
                     NodeProperties.prototype.getGradient(node);
                 }
                 break;
@@ -556,14 +509,14 @@ var SelectorViewModel = (function () {
                 NodeProperties.prototype.getGradient(node);
                 break;
         }
-    };
-    SelectorViewModel.prototype.connectorPropertyChange = function (args) {
-        if (!selectedItem.preventPropertyChange) {
-            var diagram = selectedItem.selectedDiagram;
+    }
+    connectorPropertyChange(args) {
+        if (!this.preventPropertyChange) {
+            const diagram = selectedItem.selectedDiagram;
             if (diagram && diagram.selectedItems.connectors.length > 0) {
-                var selectedNodes = diagram.selectedItems.connectors;
-                for (var i = 0; i < selectedNodes.length; i++) {
-                    var connector = selectedNodes[i];
+                const selectedNodes = diagram.selectedItems.connectors;
+                for (let i = 0; i < selectedNodes.length; i++) {
+                    const connector = selectedNodes[i];
                     switch (args.propertyName.toString().toLowerCase()) {
                         case 'linecolor':
                             connector.style.strokeColor = this.getColor(selectedItem.connectorProperties.lineColor.value);
@@ -574,14 +527,12 @@ var SelectorViewModel = (function () {
                             connector.style.strokeWidth = selectedItem.connectorProperties.lineWidth.value;
                             if (connector.sourceDecorator.style) {
                                 connector.sourceDecorator.style.strokeWidth = connector.style.strokeWidth;
-                            }
-                            else {
+                            } else {
                                 connector.sourceDecorator.style = { strokeWidth: connector.style.strokeWidth };
                             }
                             if (connector.targetDecorator.style) {
                                 connector.targetDecorator.style.strokeWidth = connector.style.strokeWidth;
-                            }
-                            else {
+                            } else {
                                 connector.targetDecorator.style = { strokeWidth: connector.style.strokeWidth };
                             }
                             break;
@@ -612,8 +563,7 @@ var SelectorViewModel = (function () {
                         case 'linejump':
                             if (args.propertyValue.checked) {
                                 connector.constraints = connector.constraints | ej.diagrams.ConnectorConstraints.Bridging;
-                            }
-                            else {
+                            } else {
                                 connector.constraints = connector.constraints & ~ej.diagrams.ConnectorConstraints.Bridging;
                             }
                             break;
@@ -626,25 +576,24 @@ var SelectorViewModel = (function () {
                 this.isModified = true;
             }
         }
-    };
-    SelectorViewModel.prototype.textPropertyChange = function (args) {
-        if (!selectedItem.preventPropertyChange) {
-            var diagram = selectedItem.selectedDiagram;
+    }
+    textPropertyChange(args) {
+        if (!this.preventPropertyChange) {
+            const diagram = selectedItem.selectedDiagram;
             if (diagram) {
-                var selectedObjects = diagram.selectedItems.nodes;
+                let selectedObjects = diagram.selectedItems.nodes;
                 selectedObjects = selectedObjects.concat(diagram.selectedItems.connectors);
-                var propertyName = args.propertyName.toString().toLowerCase();
+                const propertyName = args.propertyName.toString().toLowerCase();
                 if (selectedObjects.length > 0) {
-                    for (var i = 0; i < selectedObjects.length; i++) {
-                        var node = selectedObjects[i];
+                    for (let i = 0; i < selectedObjects.length; i++) {
+                        const node = selectedObjects[i];
                         if (node instanceof ej.diagrams.Node || node instanceof ej.diagrams.Connector) {
                             if (node.annotations.length > 0) {
-                                for (var j = 0; j < node.annotations.length; j++) {
-                                    var annotation = node.annotations[j].style;
+                                for (let j = 0; j < node.annotations.length; j++) {
+                                    const annotation = node.annotations[j].style;
                                     this.updateTextProperties(propertyName, annotation);
                                 }
-                            }
-                            else if (node.shape && node.shape.type === 'Text') {
+                            } else if (node.shape && node.shape.type === 'Text') {
                                 this.updateTextProperties(propertyName, node.style);
                             }
                         }
@@ -654,8 +603,8 @@ var SelectorViewModel = (function () {
                 }
             }
         }
-    };
-    SelectorViewModel.prototype.updateTextProperties = function (propertyName, annotation) {
+    }
+    updateTextProperties(propertyName, annotation) {
         switch (propertyName) {
             case 'fontfamily':
                 annotation.fontFamily = selectedItem.textProperties.fontFamily.value;
@@ -671,16 +620,16 @@ var SelectorViewModel = (function () {
                 document.getElementById("textOpacityText").value = selectedItem.textProperties.opacity.value + '%';
                 break;
         }
-    };
-    SelectorViewModel.prototype.mindMapPropertyChange = function (args) {
-        if (!selectedItem.preventPropertyChange) {
-            var diagram = selectedItem.selectedDiagram;
+    }
+    mindMapPropertyChange(args) {
+        if (!this.preventPropertyChange) {
+            const diagram = selectedItem.selectedDiagram;
             if (diagram && diagram.nodes.length > 0) {
-                for (var i = 0; i < diagram.nodes.length; i++) {
-                    var node = diagram.nodes[i];
+                for (let i = 0; i < diagram.nodes.length; i++) {
+                    const node = diagram.nodes[i];
                     if (node.addInfo) {
-                        var addInfo = node.addInfo;
-                        var levelType = selectedItem.mindmapSettings.levelType.value;
+                        const addInfo = node.addInfo;
+                        const levelType = selectedItem.mindmapSettings.levelType.value;
                         if ('Level' + addInfo.level === levelType || addInfo.level === levelType) {
                             switch (args.propertyName.toString().toLowerCase()) {
                                 case 'fill':
@@ -689,21 +638,21 @@ var SelectorViewModel = (function () {
                                 case 'stroke':
                                     node.style.strokeColor = this.getColor(selectedItem.mindmapSettings.stroke.value);
                                     if (node.inEdges.length > 0) {
-                                        var connector = MindMapUtilityMethods.getConnector(diagram.connectors, node.inEdges[0]);
+                                        const connector = MindMapUtilityMethods.getConnector(diagram.connectors, node.inEdges[0]);
                                         connector.style.strokeColor = node.style.strokeColor;
                                     }
                                     break;
                                 case 'strokewidth':
                                     node.style.strokeWidth = selectedItem.mindmapSettings.strokeWidth.value;
                                     if (node.inEdges.length > 0) {
-                                        var connector1 = MindMapUtilityMethods.getConnector(diagram.connectors, node.inEdges[0]);
+                                        const connector1 = MindMapUtilityMethods.getConnector(diagram.connectors, node.inEdges[0]);
                                         connector1.style.strokeWidth = selectedItem.mindmapSettings.strokeWidth.value;
                                     }
                                     break;
                                 case 'strokestyle':
                                     node.style.strokeDashArray = selectedItem.mindmapSettings.strokeStyle.value;
                                     if (node.inEdges.length > 0) {
-                                        var connector2 = MindMapUtilityMethods.getConnector(diagram.connectors, node.inEdges[0]);
+                                        const connector2 = MindMapUtilityMethods.getConnector(diagram.connectors, node.inEdges[0]);
                                         connector2.style.strokeDashArray = selectedItem.mindmapSettings.strokeStyle.value;
                                     }
                                     break;
@@ -722,11 +671,11 @@ var SelectorViewModel = (function () {
                 }
             }
         }
-    };
-    SelectorViewModel.prototype.updateMindMapTextStyle = function (node, propertyName) {
-        var diagram = selectedItem.selectedDiagram;
+    }
+    updateMindMapTextStyle(node, propertyName) {
+        const diagram = selectedItem.selectedDiagram;
         if (node.addInfo && node.annotations.length > 0) {
-            var annotation = node.annotations[0].style;
+            const annotation = node.annotations[0].style;
             switch (propertyName) {
                 case 'fontfamily':
                     annotation.fontFamily = selectedItem.mindmapSettings.fontFamily.value;
@@ -739,18 +688,30 @@ var SelectorViewModel = (function () {
                     break;
                 case 'textopacity':
                     annotation.opacity = selectedItem.mindmapSettings.textOpacity.value / 100;
-                    document.getElementById("textOpacityText").value = selectedItem.mindmapSettings.textOpacity.value + '%';
+                    document.getElementById("mindMaptextOpacityText").value = selectedItem.mindmapSettings.textOpacity.value + '%';
                     break;
             }
+            diagram.dataBind();
+            this.isModified = true;
         }
-        diagram.dataBind();
-        this.isModified = true;
-    };
-    SelectorViewModel.prototype.getColor = function (colorName) {
+    }
+    getColor(colorName) {
         if (window.navigator.msSaveBlob && colorName.length === 9) {
             return colorName.substring(0, 7);
         }
         return colorName;
-    };
-    return SelectorViewModel;
-}());
+    }
+}
+
+export {
+    NodeProperties,
+    ConnectorProperties,
+    TextProperties,
+    ExportSettings,
+    PrintSettings,
+    PageSettings,
+    ScrollSettings,
+    MindMapSettings,
+    OrgDataSettings,
+    SelectorViewModel
+};

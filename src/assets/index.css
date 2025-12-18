@@ -2041,7 +2041,7 @@
 
 .e-toolbar .e-toolbar-items.e-toolbar-multirow {
   margin-bottom: 1px;
-  margin-left: 18px;
+  margin-left: 1px;
   margin-right: 18px;
   white-space: normal;
 }
@@ -25815,4 +25815,19 @@ ejs-multiselect {
 
 .e-diagram-rotate {
   cursor: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAASCAYAAABWzo5XAAAACXBIWXMAAAsSAAALEgHS3X78AAAA60lEQVQ4jZ1SwQ2DMBAzlfLJI2KEjJAVukG7ARsxQkfoKHQDugHdgOoqh14oCaGWIpSTudzZRg2MdYOxrq0il2Csm411o7Eu5GinTN0D6AGMAGZVux9p1LGBrHIF0LD+4l3ql70thDABSFZYaeTJ6UqNWhL3ELhyyhUR98TcwI06Lk1aNonO1NocqGWy/6zOcGCq6OjiSCw22/wUfEzL8ND2P9duFXBmHMDvWVN7CliFkkGe69VM5RmVLDqG7ZMPOroWP5BTle5WjR6dkQayutyLqU6gsiU/ypHMiI41yf+CE01qov+R0egXAN5x6jng51I3yAAAAABJRU5ErkJggg==), auto !important;
+}
+.e-menu-wrapper .e-menu{
+  margin-top: -5px!important;
+  color: white !important;
+}
+  .e-menu-wrapper ul .e-menu-item .e-caret, .e-menu-container ul .e-menu-item .e-caret {
+  visibility: collapse !important;
+}
+
+.diagram-menu-control {
+  margin-left: 10px;
+}
+.diagram-menu-control .e-menu-wrapper ul .e-menu-item.e-menu-caret-icon {
+  padding-right:10px;
+  padding-left:10px; /* To position the menu item header properly with equal space*/
 }

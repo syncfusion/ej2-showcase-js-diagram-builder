@@ -1,15 +1,18 @@
+// utilitymethods.js
+
 /**
  *  Home page handler
  */
+import {OrgChartData, OrgChartUtilityMethods} from './orgchart';
+import {MindMapUtilityMethods, MindMap} from './mindmap';
+import { snapSettings, selectedItemSettings } from '../index';
+import {PageCreation} from './pages';
+export class PaperSize {
+    constructor() {}
+}
 
-var PaperSize = (function () {
-    function PaperSize() {
-    }
-    return PaperSize;
-}());
-
-var UtilityMethods = (function () {
-    function UtilityMethods() {
+export class UtilityMethods {
+    constructor() {
         this.flowChartImage = [
             { source: 'src/assets/dbstyle/common_images/blank_diagram.svg', name: 'Blank Diagram', type: 'svg_blank' },
             { source: 'src/assets/dbstyle/flowchart_Images/Credit_Card_Processing.svg', name: 'Credit Card Processing', type: 'svg_image' },
@@ -37,13 +40,16 @@ var UtilityMethods = (function () {
         this.fillColorCode = ['#C4F2E8', '#F7E0B3', '#E5FEE4', '#E9D4F1', '#D4EFED', '#DEE2FF'];
         this.borderColorCode = ['#8BC1B7', '#E2C180', '#ACCBAA', '#D1AFDF', '#90C8C2', '#BBBFD6'];
     }
-    UtilityMethods.prototype.bindNodeProperties = function (node, selectedItem) {
+
+    bindNodeProperties(node, selectedItem) {
         selectedItem.preventPropertyChange = true;
         selectedItem.nodeProperties.offsetX.value = (Math.round(node.offsetX * 100) / 100);
         selectedItem.nodeProperties.offsetY.value = (Math.round(node.offsetY * 100) / 100);
         selectedItem.nodeProperties.width.value = node.width ? (Math.round(node.width * 100) / 100) : (Math.round(node.minWidth * 100) / 100);
         selectedItem.nodeProperties.height.value = node.height ? (Math.round(node.height * 100) / 100) : (Math.round(node.minHeight * 100) / 100);
-        selectedItem.nodeProperties.rotateAngle.value = node.rotateAngle;
+        if (selectedItem.selectedDiagram.selectedItems?.nodes?.length === 1) {
+            selectedItem.nodeProperties.rotateAngle.value = node.rotateAngle;
+        }
         selectedItem.nodeProperties.strokeColor.value = this.getHexColor(node.style.strokeColor);
         selectedItem.nodeProperties.strokeStyle.value = node.style.strokeDashArray ? node.style.strokeDashArray : 'None';
         selectedItem.nodeProperties.strokeWidth.value = node.style.strokeWidth;
@@ -51,11 +57,12 @@ var UtilityMethods = (function () {
         selectedItem.nodeProperties.opacity.value = node.style.opacity * 100;
         selectedItem.nodeProperties.aspectRatio.checked = node.constraints & ej.diagrams.NodeConstraints.AspectRatio ? true : false;
         selectedItem.nodeProperties.gradient = node.style.gradient.type !== 'None' ? true : false;
-        var gradientElement = document.getElementById('gradientStyle');
+        const gradientElement = document.getElementById('gradientStyle');
         if (selectedItem.nodeProperties.gradient) {
             gradientElement.className = 'row db-prop-row db-gradient-style-show';
+            document.getElementById('gradient').ej2_instances[0].checked = true;
             selectedItem.nodeProperties.gradientColor.value = node.style.gradient.stops[1].color;
-            var gradient = node.style.gradient;
+            const gradient = node.style.gradient;
             if (gradient.x1) {
                 selectedItem.nodeProperties.gradientDirection.value = 'North';
             }
@@ -71,12 +78,14 @@ var UtilityMethods = (function () {
         }
         else {
             gradientElement.className = 'row db-prop-row db-gradient-style-hide';
+            document.getElementById('gradient').ej2_instances[0].checked = false;
             selectedItem.nodeProperties.gradientColor.value = '#ffffff';
             selectedItem.nodeProperties.gradientDirection.value = 'South';
         }
         selectedItem.preventPropertyChange = false;
-    };
-    UtilityMethods.prototype.bindMindMapProperties = function (node, selectedItem) {
+    }
+
+    bindMindMapProperties(node, selectedItem) {
         selectedItem.preventPropertyChange = true;
         selectedItem.mindmapSettings.stroke.value = node.style.strokeColor;
         selectedItem.mindmapSettings.strokeStyle.value = node.style.strokeDashArray ? node.style.strokeDashArray : 'None';
@@ -84,21 +93,27 @@ var UtilityMethods = (function () {
         selectedItem.mindmapSettings.fill.value = node.style.fill;
         selectedItem.mindmapSettings.opacity.value = (node.style.opacity || 1) * 100;
         if (node.annotations.length > 0) {
-            var annotation = node.annotations[0].style;
+            const annotation = node.annotations[0].style;
             selectedItem.mindmapSettings.fontFamily.value = annotation.fontFamily;
             selectedItem.mindmapSettings.fontColor.value = annotation.color;
             selectedItem.mindmapSettings.fontSize.value = annotation.fontSize;
             selectedItem.mindmapSettings.textOpacity.value = (annotation.opacity || 1) * 100;
+            //Bind text style toolbar with mindmap.
+            let mindmapTextStyleToolbar = document.getElementById('mindmapTextStyleToolbar').ej2_instances[0];
+            mindmapTextStyleToolbar.items[0].cssClass = annotation.bold ? 'tb-item-start tb-item-selected' : 'tb-item-start';
+            mindmapTextStyleToolbar.items[1].cssClass = annotation.italic ? 'tb-item-middle tb-item-selected' : 'tb-item-middle';
+            mindmapTextStyleToolbar.items[2].cssClass = annotation.textDecoration === 'Underline' ? 'tb-item-end tb-item-selected' : 'tb-item-end';
         }
         selectedItem.preventPropertyChange = false;
-    };
-    UtilityMethods.prototype.bindTextProperties = function (text, selectedItem) {
+    }
+
+    bindTextProperties(text, selectedItem) {
         selectedItem.preventPropertyChange = true;
         selectedItem.textProperties.fontColor.value = this.getHexColor(text.color);
         selectedItem.textProperties.fontFamily.value = text.fontFamily;
         selectedItem.textProperties.fontSize.value = text.fontSize;
         selectedItem.textProperties.opacity.value = text.opacity * 100;
-        var toolbarTextStyle = document.getElementById('toolbarTextStyle');
+        let toolbarTextStyle = document.getElementById('toolbarTextStyle');
         if (toolbarTextStyle) {
             toolbarTextStyle = toolbarTextStyle.ej2_instances[0];
         }
@@ -109,36 +124,49 @@ var UtilityMethods = (function () {
         }
         this.updateTextAlign(text.textAlign);
         selectedItem.preventPropertyChange = false;
-    };
-    UtilityMethods.prototype.updateTextAlign = function (textAlign) {
-        var toolbarTextSubAlignment = document.getElementById('toolbarTextSubAlignment');
+    }
+
+    updateTextAlign(textAlign) {
+        let toolbarTextSubAlignment = document.getElementById('toolbarTextSubAlignment');
         if (toolbarTextSubAlignment) {
             toolbarTextSubAlignment = toolbarTextSubAlignment.ej2_instances[0];
         }
         if (toolbarTextSubAlignment) {
-            for (var i = 0; i < toolbarTextSubAlignment.items.length; i++) {
+            for (let i = 0; i < toolbarTextSubAlignment.items.length; i++) {
                 toolbarTextSubAlignment.items[i].cssClass = toolbarTextSubAlignment.items[i].cssClass.replace(' tb-item-selected', '');
             }
-            var index = textAlign === 'Left' ? 0 : (textAlign === 'Center' ? 1 : 2);
+            const index = textAlign === 'Left' ? 0 : (textAlign === 'Center' ? 1 : 2);
             toolbarTextSubAlignment.items[index].cssClass = toolbarTextSubAlignment.items[index].cssClass + ' tb-item-selected';
         }
-    };
-    UtilityMethods.prototype.updateHorVertAlign = function (horizontalAlignment, verticalAlignment) {
-        var toolbarHorVerAlignment = document.getElementById('toolbarTextAlignment');
-        if (toolbarHorVerAlignment) {
-            toolbarHorVerAlignment = toolbarHorVerAlignment.ej2_instances[0];
+    }
+    // Seperated text align toolbar so modified the function accordingly
+    updateHorVertAlign(horizontalAlignment, verticalAlignment) {
+        let toolbarHorAlignment = document.getElementById('toolbarTextAlignmentHor');
+        let toolbarVerAlignment = document.getElementById('toolbarTextAlignmentVer');
+
+        if (toolbarHorAlignment) {
+            toolbarHorAlignment = toolbarHorAlignment.ej2_instances[0];
         }
-        if (toolbarHorVerAlignment) {
-            for (var i = 0; i < toolbarHorVerAlignment.items.length; i++) {
-                toolbarHorVerAlignment.items[i].cssClass = toolbarHorVerAlignment.items[i].cssClass.replace(' tb-item-selected', '');
+         if (toolbarVerAlignment) {
+            toolbarVerAlignment = toolbarVerAlignment.ej2_instances[0];
+        }
+        if (toolbarHorAlignment) {
+            for (let i = 0; i < toolbarHorAlignment.items.length; i++) {
+                toolbarHorAlignment.items[i].cssClass = toolbarHorAlignment.items[i].cssClass.replace(' tb-item-selected', '');
             }
-            var index = horizontalAlignment === 'Right' ? 0 : (horizontalAlignment === 'Center' ? 1 : 2);
-            toolbarHorVerAlignment.items[index].cssClass = toolbarHorVerAlignment.items[index].cssClass + ' tb-item-selected';
-            index = verticalAlignment === 'Bottom' ? 3 : (verticalAlignment === 'Center' ? 4 : 5);
-            toolbarHorVerAlignment.items[index].cssClass = toolbarHorVerAlignment.items[index].cssClass + ' tb-item-selected';
+            let index = horizontalAlignment === 'Right' ? 0 : (horizontalAlignment === 'Center' ? 1 : 2);
+            toolbarHorAlignment.items[index].cssClass = toolbarHorAlignment.items[index].cssClass + ' tb-item-selected';
         }
-    };
-    UtilityMethods.prototype.bindConnectorProperties = function (connector, selectedItem) {
+         if (toolbarVerAlignment) {
+            for (let i = 0; i < toolbarVerAlignment.items.length; i++) {
+                toolbarVerAlignment.items[i].cssClass = toolbarVerAlignment.items[i].cssClass.replace(' tb-item-selected', '');
+            }
+            let index = verticalAlignment === 'Bottom' ? 0 : (verticalAlignment === 'Center' ? 1 : 2);
+            toolbarVerAlignment.items[index].cssClass = toolbarVerAlignment.items[index].cssClass + ' tb-item-selected';
+        }
+    }
+
+    bindConnectorProperties(connector, selectedItem) {
         selectedItem.preventPropertyChange = true;
         selectedItem.connectorProperties.lineColor.value = this.getHexColor(connector.style.strokeColor);
         selectedItem.connectorProperties.lineStyle.value = connector.style.strokeDashArray ? connector.style.strokeDashArray : 'None';
@@ -152,17 +180,17 @@ var UtilityMethods = (function () {
         selectedItem.connectorProperties.targetSize.value = connector.targetDecorator.width;
         selectedItem.connectorProperties.sourceSize.value = connector.sourceDecorator.width;
         selectedItem.preventPropertyChange = false;
-    };
-    UtilityMethods.prototype.getHexColor = function (colorStr) {
-        var a = document.createElement('div');
+    }
+
+    getHexColor(colorStr) {
+        const a = document.createElement('div');
         a.style.color = colorStr;
-        var colors = window.getComputedStyle(document.body.appendChild(a)).color.match(/\d+/g).map(function (a) {
-            return parseInt(a, 10);
-        });
+        const colors = window.getComputedStyle(document.body.appendChild(a)).color.match(/\d+/g).map(a => parseInt(a, 10));
         document.body.removeChild(a);
         return (colors.length >= 3) ? '#' + (((1 << 24) + (colors[0] << 16) + (colors[1] << 8) + colors[2]).toString(16).substr(1)) : '';
-    };
-    UtilityMethods.prototype.getOffset = function (position) {
+    }
+
+    getOffset(position) {
         switch (position.toLowerCase()) {
             case 'topleft':
                 return { x: 0, y: 0 };
@@ -172,8 +200,6 @@ var UtilityMethods = (function () {
                 return { x: 1, y: 0 };
             case 'middleleft':
                 return { x: 0, y: 0.5 };
-            default:
-                return { x: 0.5, y: 0.5 };
             case 'middleright':
                 return { x: 1, y: 0.5 };
             case 'bottomleft':
@@ -182,9 +208,12 @@ var UtilityMethods = (function () {
                 return { x: 0.5, y: 1 };
             case 'bottomright':
                 return { x: 1, y: 1 };
+            default:
+                return { x: 0.5, y: 0.5 };
         }
-    };
-    UtilityMethods.prototype.getPosition = function (offset) {
+    }
+
+    getPosition(offset) {
         if (offset.x === 0 && offset.y === 0) {
             return 'TopLeft';
         }
@@ -212,9 +241,10 @@ var UtilityMethods = (function () {
         else {
             return 'Center';
         }
-    };
-    UtilityMethods.prototype.hideElements = function (elementType, diagram, diagramType) {
-        var diagramContainer = document.getElementsByClassName('diagrambuilder-container')[0];
+    }
+
+    hideElements(elementType, diagram, diagramType) {
+        const diagramContainer = document.getElementsByClassName('diagrambuilder-container')[0];
         if (diagramContainer.classList.contains(elementType)) {
             if (!(diagramType === 'mindmap-diagram' || diagramType === 'orgchart-diagram')) {
                 diagramContainer.classList.remove(elementType);
@@ -226,8 +256,9 @@ var UtilityMethods = (function () {
         if (diagram) {
             diagram.updateViewPort();
         }
-    };
-    UtilityMethods.prototype.objectTypeChange = function (objectType) {
+    }
+
+    objectTypeChange(objectType) {
         document.getElementById('diagramPropertyContainer').style.display = 'none';
         document.getElementById('nodePropertyContainer').style.display = 'none';
         document.getElementById('textPropertyContainer').style.display = 'none';
@@ -243,41 +274,43 @@ var UtilityMethods = (function () {
                 document.getElementById('connectorPropertyContainer').style.display = '';
                 break;
         }
-    };
-    UtilityMethods.prototype.getDefaultDiagramTemplates1 = function (selectedItem, tempCount, backgroundColor, parentId) {
+    }
+
+    getDefaultDiagramTemplates1(selectedItem, tempCount, backgroundColor, parentId) {
         tempCount = tempCount ? tempCount : 4;
         backgroundColor = backgroundColor ? backgroundColor : 'red';
         parentId = parentId ? parentId : 'Flow Chart';
-        var parentDiv = document.getElementById('diagramTemplateDiv1');
+        let parentDiv = document.getElementById('diagramTemplateDiv1');
         parentDiv = parentDiv.cloneNode(true);
         parentDiv.id = '';
         parentDiv.style.display = '';
-        var parentElements = parentDiv.getElementsByClassName('db-diagram-template-parent-text');
-        for (var i = 0; i < parentElements.length; i++) {
+        const parentElements = parentDiv.getElementsByClassName('db-diagram-template-parent-text');
+        for (let i = 0; i < parentElements.length; i++) {
             if (parentElements[i].children[0].innerHTML.trim() === parentId) {
                 parentElements[i].classList.add('active');
             }
             parentElements[i].onclick = this.showDiagramTemplates.bind(this, selectedItem);
         }
-        var diagramTemplatesDiv = parentDiv.getElementsByClassName('diagramTemplates')[0];
+        const diagramTemplatesDiv = parentDiv.getElementsByClassName('diagramTemplates')[0];
         diagramTemplatesDiv.appendChild(this.generateDiagramTemplates(tempCount, backgroundColor, parentId, selectedItem));
         this.tempDialog.content = parentDiv.outerHTML;
         this.tempDialog.dataBind();
         this.triggerTemplateEvent(selectedItem);
         return this.tempDialog.content;
-    };
-    UtilityMethods.prototype.generateDiagramTemplates = function (tempCount, backgroundColor, parentId, selectedItem) {
-        var parentTemplateDiv = document.createElement('div');
+    }
+
+    generateDiagramTemplates(tempCount, backgroundColor, parentId, selectedItem) {
+        const parentTemplateDiv = document.createElement('div');
         parentTemplateDiv.classList.add('class', 'db-parent-diagram-template');
-        var divElement = document.getElementById('diagramTemplateDiv');
-        for (var i = 0; i < tempCount; i++) {
-            var cloneTemplateDiv = divElement.cloneNode(true);
+        const divElement = document.getElementById('diagramTemplateDiv');
+        for (let i = 0; i < tempCount; i++) {
+            const cloneTemplateDiv = divElement.cloneNode(true);
             cloneTemplateDiv.style.display = '';
             cloneTemplateDiv.id = '';
-            var imageDiv = cloneTemplateDiv.children[0];
+            const imageDiv = cloneTemplateDiv.children[0];
             imageDiv.setAttribute('id', parentId.replace(' ', '').toLowerCase() + '_child' + i);
             imageDiv.onclick = this.generateDiagram.bind(this, selectedItem);
-            var diagramType = this.getImageSource(parentId, i);
+            const diagramType = this.getImageSource(parentId, i);
             imageDiv.children[0].style.backgroundImage = 'url(' + diagramType.source + ')';
             if (diagramType.type) {
                 if (diagramType.type === 'svg_blank') {
@@ -294,18 +327,20 @@ var UtilityMethods = (function () {
             parentTemplateDiv.appendChild(cloneTemplateDiv);
         }
         return parentTemplateDiv;
-    };
-    UtilityMethods.prototype.triggerTemplateEvent = function (selectedItem) {
-        var parentElements = document.getElementsByClassName('db-diagram-template-parent-text');
-        for (var i = 0; i < parentElements.length; i++) {
+    }
+
+    triggerTemplateEvent(selectedItem) {
+        const parentElements = document.getElementsByClassName('db-diagram-template-parent-text');
+        for (let i = 0; i < parentElements.length; i++) {
             parentElements[i].onclick = this.showDiagramTemplates.bind(this, selectedItem);
         }
-        var parentElements1 = document.getElementsByClassName('db-diagram-template-image-div');
-        for (var i = 0; i < parentElements1.length; i++) {
+        const parentElements1 = document.getElementsByClassName('db-diagram-template-image-div');
+        for (let i = 0; i < parentElements1.length; i++) {
             parentElements1[i].onclick = this.generateDiagram.bind(this, selectedItem);
         }
-    };
-    UtilityMethods.prototype.getImageSource = function (diagramType, index) {
+    }
+
+    getImageSource(diagramType, index) {
         switch (diagramType) {
             case 'Flow Chart':
                 return this.flowChartImage[index];
@@ -316,25 +351,23 @@ var UtilityMethods = (function () {
             default:
                 return this.bpmnImage[index];
         }
-    };
-    UtilityMethods.prototype.readTextFile = function (file, selectedItem) {
-        var _this = this;
+    }
+
+    readTextFile(file, selectedItem) {
         document.getElementsByClassName('sb-content-overlay')[0].style.display = '';
-        var ajax = new ej.base.Ajax(file, 'GET', true);
+        const ajax = new ej.base.Ajax(file, 'GET', true);
         ajax.send().then();
-        var context = this;
-        ajax.onSuccess = function (data) {
+        ajax.onSuccess = (data) => {
             selectedItem.preventSelectionChange = true;
             selectedItem.isTemplateLoad = true;
-            _this.page.loadPage(data);
-            _this.page.loadDiagramSettings();
+            this.page.loadPage(data);
+            this.page.loadDiagramSettings();
             selectedItem.isTemplateLoad = false;
             if (selectedItem.diagramType === 'MindMap') {
-                var rootNode = MindMapUtilityMethods.getNode(selectedItem.selectedDiagram.nodes, 'rootNode');
+                const rootNode = MindMapUtilityMethods.getNode(selectedItem.selectedDiagram.nodes, 'rootNode');
                 selectedItem.utilityMethods.bindMindMapProperties(rootNode, selectedItem);
             }
             if (selectedItem.diagramType === 'OrgChart') {
-                selectedItem.selectedDiagram.layout.getLayoutInfo = OrgChartUtilityMethods.getLayoutInfo.bind(OrgChartUtilityMethods);
                 selectedItem.selectedDiagram.selectedItems.userHandles = OrgChartUtilityMethods.handle;
                 selectedItem.selectedDiagram.selectedItems.constraints = ej.diagrams.SelectorConstraints.UserHandle;
                 selectedItem.selectedDiagram.dataBind();
@@ -342,21 +375,22 @@ var UtilityMethods = (function () {
             selectedItem.preventSelectionChange = false;
             document.getElementsByClassName('sb-content-overlay')[0].style.display = 'none';
         };
-        ajax.onFailure = function (data) {
+        ajax.onFailure = (data) => {
             document.getElementsByClassName('sb-content-overlay')[0].style.display = 'none';
         };
-        ajax.onError = function (evt) {
+        ajax.onError = (evt) => {
             document.getElementsByClassName('sb-content-overlay')[0].style.display = 'none';
             return null;
         };
-    };
-    UtilityMethods.prototype.generateDiagram = function (selectedItem, evt) {
-        var diagramContainer = document.getElementsByClassName('diagrambuilder-container')[0];
-        var target = evt.target;
+    }
+
+    generateDiagram(selectedItem, evt) {
+        const diagramContainer = document.getElementsByClassName('diagrambuilder-container')[0];
+        const target = evt.target;
         if (target.id.startsWith('mindmap')) {
             selectedItem.diagramType = 'MindMap';
             MindMapUtilityMethods.selectedItem = selectedItem;
-            var mindMapObject = new MindMap(selectedItem);
+            const mindMapObject = new MindMap(selectedItem);
             if (target.id === 'mindmap_child0') {
                 mindMapObject.createMindMap(true);
                 MindMapUtilityMethods.templateType = 'template1';
@@ -382,7 +416,7 @@ var UtilityMethods = (function () {
         else if (target.id.startsWith('orgchart')) {
             selectedItem.diagramType = 'OrgChart';
             OrgChartUtilityMethods.selectedItem = selectedItem;
-            var orgChartObject = new OrgChartData(selectedItem);
+            const orgChartObject = new OrgChartData(selectedItem);
             if (target.id === 'orgchart_child0') {
                 orgChartObject.createOrgChart(true);
             }
@@ -407,7 +441,12 @@ var UtilityMethods = (function () {
         }
         else if (target.id.startsWith('flowchart')) {
             if (target.id === 'flowchart_child0') {
+                this.hideShortcutVisibility();
+                selectedItem.selectedDiagram.snapSettings = snapSettings;
+                selectedItem.selectedDiagram.selectedItems = selectedItemSettings;
+                selectedItem.selectedDiagram.selectedItems.userHandles = [];
                 selectedItem.selectedDiagram.clear();
+                this.updatePalette(selectedItem.selectedDiagram);
             }
             else if (target.id === 'flowchart_child1') {
                 this.readTextFile('src/assets/dbstyle/flowchart_Images/CreditCardFlow.json', selectedItem);
@@ -426,24 +465,26 @@ var UtilityMethods = (function () {
             selectedItem.diagramType = 'GeneralDiagram';
             diagramContainer.classList.add('general-diagram');
         }
-        var diagramName = target.parentElement.children[1].children[0].innerHTML;
+        const diagramName = target.parentElement.children[1].children[0].innerHTML;
         if (diagramName !== 'Blank Diagram') {
             document.getElementById('diagramName').innerHTML = diagramName;
         }
         this.tempDialog.hide();
-    };
-    UtilityMethods.prototype.hideMenuItems = function () {
-        var btnWindow = document.getElementById('btnWindowMenu');
-        btnWindow.ej2_instances[0].items[1].iconCss = '';
-        var btnView = document.getElementById('btnViewMenu');
-        btnView.ej2_instances[0].items[7].iconCss = '';
-    };
-    UtilityMethods.prototype.currentDiagramVisibility = function (diagramname, selectedItem) {
+    }
+
+    hideMenuItems() {
+        const btnWindow = document.getElementById('diagram-menu').ej2_instances[0].items[4];
+        btnWindow.items[1].iconCss = '';
+        const btnView = document.getElementById('diagram-menu').ej2_instances[0].items[2]
+        btnView.items[7].iconCss = '';
+    }
+
+    currentDiagramVisibility(diagramname, selectedItem) {
         if (diagramname === 'mindmap-diagram' || diagramname === 'orgchart-diagram') {
             selectedItem.utilityMethods.hideElements('hide-palette', null, diagramname);
-            var diagramContainer = document.getElementsByClassName('db-current-diagram-container')[0];
+            const diagramContainer = document.getElementsByClassName('db-current-diagram-container')[0];
             diagramContainer.classList.add(diagramname);
-            var propertyContainer = document.getElementsByClassName('db-property-editor-container')[0];
+            const propertyContainer = document.getElementsByClassName('db-property-editor-container')[0];
             if (diagramname === 'mindmap-diagram') {
                 propertyContainer.classList.remove('orgchart-diagram');
             }
@@ -452,9 +493,10 @@ var UtilityMethods = (function () {
             }
             propertyContainer.classList.add(diagramname);
         }
-    };
-    UtilityMethods.prototype.showDiagramTemplates = function (selectedItem, evt) {
-        var target = evt.target;
+    }
+
+    showDiagramTemplates(selectedItem, evt) {
+        let target = evt.target;
         if (target.tagName.toLowerCase() === 'span') {
             target = target.parentElement;
         }
@@ -472,10 +514,11 @@ var UtilityMethods = (function () {
                 this.getDefaultDiagramTemplates1(selectedItem, 4, 'brown', 'BPMN');
                 break;
         }
-    };
-    UtilityMethods.prototype.enableToolbarItems = function (selectedItems) {
-        var toolbarContainer = document.getElementsByClassName('db-toolbar-container')[0];
-        var toolbarClassName = 'db-toolbar-container';
+    }
+
+    enableToolbarItems(selectedItems) {
+        const toolbarContainer = document.getElementsByClassName('db-toolbar-container')[0];
+        let toolbarClassName = 'db-toolbar-container';
         if (toolbarContainer.classList.contains('db-undo')) {
             toolbarClassName += ' db-undo';
         }
@@ -488,10 +531,10 @@ var UtilityMethods = (function () {
             if (selectedItems[0] instanceof ej.diagrams.Node) {
                 if (selectedItems[0].children) {
                     if (selectedItems[0].children.length > 2) {
-                        toolbarContainer.className = toolbarContainer.className + ' db-select db-double db-multiple db-node db-group';
+                        toolbarContainer.className = toolbarContainer.className + ' db-select db-multiple db-node db-group';
                     }
                     else {
-                        toolbarContainer.className = toolbarContainer.className + ' db-select db-double db-node db-group';
+                        toolbarContainer.className = toolbarContainer.className + ' db-select db-node db-group';
                     }
                 }
                 else {
@@ -506,43 +549,37 @@ var UtilityMethods = (function () {
             toolbarContainer.className = toolbarContainer.className + ' db-select db-double db-multiple';
         }
         if (selectedItems.length > 1) {
-            var isNodeExist = false;
-            for (var i = 0; i < selectedItems.length; i++) {
+            let isNodeExist = false;
+            for (let i = 0; i < selectedItems.length; i++) {
                 if (selectedItems[i] instanceof ej.diagrams.Node) {
                     toolbarContainer.className = toolbarContainer.className + ' db-select db-node';
                     break;
                 }
             }
         }
-    };
-    UtilityMethods.prototype.enableMenuItems = function (itemText, selectedItem) {
-        var selectedDiagram = diagram.ej2_instances ? diagram.ej2_instances[0] : selectedItem.selectedDiagram;
-        var selectedItems = selectedDiagram.selectedItems.nodes;
+    }
+
+    enableMenuItems(itemText, selectedItem) {
+        const selectedDiagram = diagram.ej2_instances ? diagram.ej2_instances[0] : selectedItem.selectedDiagram;
+        let selectedItems = selectedDiagram.selectedItems.nodes;
         selectedItems = selectedItems.concat(selectedDiagram.selectedItems.connectors);
         if (itemText) {
-            var commandType = itemText.replace(/[' ']/g, '');
+            const commandType = itemText.replace(/[' ']/g, '');
             if (selectedItems.length === 0 || selectedItem.diagramType !== 'GeneralDiagram') {
                 switch (commandType.toLowerCase()) {
                     case 'edittooltip':
-                        var disable = false;
-                        if (!(selectedItems.length === 1)) {
-                            disable = true;
-                        }
+                        const disable = !(selectedItems.length === 1);
                         return disable;
                     case 'cut':
-                        return true;
                     case 'copy':
-                        return true;
                     case 'delete':
-                        return true;
                     case 'duplicate':
                         return true;
                 }
             }
             if (selectedItems.length > 1) {
-                switch (commandType.toLowerCase()) {
-                    case 'edittooltip':
-                        return true;
+                if (commandType.toLowerCase() === 'edittooltip') {
+                    return true;
                 }
             }
             if (selectedItem.pasteData.length === 0 && itemText === 'Paste') {
@@ -559,46 +596,94 @@ var UtilityMethods = (function () {
                     return true;
                 }
             }
+            if (['Align Objects', 'Distribute Objects', 'Match Size', 'Group'].includes(itemText)) {
+                if (selectedItems.length < 2) {
+                    return true;
+                }
+            }
+            if (['Bring To Front', 'Send To Back', 'Bring Forward', 'Send Backward'].includes(itemText)) {
+                if (selectedItems.length !== 1) {
+                    return true;
+                }
+            }
+            if (['Lock', 'Unlock'].includes(itemText)) {
+                if (selectedItems.length < 1) {
+                    return true;
+                } else {
+                    if (itemText === 'Lock') {
+                        for (let i = 0; i < selectedItems.length; i++) {
+                            if (selectedItems[i].constraints !== ej.diagrams.NodeConstraints.Default) {
+                                return true;
+                            }
+                        }
+                    } else {
+                        for (let i = 0; i < selectedItems.length; i++) {
+                            if (selectedItems[i].constraints === ej.diagrams.NodeConstraints.Default) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            if (itemText === 'Ungroup') {
+                if (selectedItems.length !== 1 || !(selectedItems[0] instanceof ej.diagrams.Node) || !selectedItems[0].children || selectedItems[0].children.length === 0) {
+                    return true;
+                }
+            }
             if (selectedItem.diagramType !== 'GeneralDiagram') {
-                if (itemText === 'Themes' || itemText === 'Paste' || itemText === 'Show Rulers' || itemText === 'Show Guides'
-                    || itemText === 'Show Grid' || itemText === 'Snap To Grid' || itemText === 'Show Stencil') {
+                if (['Themes', 'Paste', 'Show Rulers', 'Show Layers', 'Show Guides', 'Show Grid', 'Snap To Grid', 'Show Stencil','Align Objects', 'Distribute Objects', 'Match Size', 'Group',
+                    'Bring To Front', 'Send To Back', 'Bring Forward', 'Send Backward','Lock', 'Unlock','Ungroup'].includes(itemText)) {
                     return true;
                 }
             }
         }
         return false;
-    };
-    UtilityMethods.prototype.enableArrangeMenuItems = function (selectedItem) {
-        var contextInstance = document.getElementById('arrangeContextMenu');
-        var contextMenu = contextInstance.ej2_instances[0];
-        var selectedItems = selectedItem.selectedDiagram.selectedItems.nodes;
+    }
+
+    enableArrangeMenuItems(selectedItem) {
+        const contextInstance = document.getElementById('arrangeContextMenu');
+        const contextMenu = contextInstance.ej2_instances[0];
+        let selectedItems = selectedItem.selectedDiagram.selectedItems.nodes;
         selectedItems = selectedItems.concat(selectedItem.selectedDiagram.selectedItems.connectors);
-        for (var i = 0; i < contextMenu.items.length; i++) {
+        for (let i = 0; i < contextMenu.items.length; i++) {
             contextMenu.enableItems([contextMenu.items[i].text], false);
         }
         if (selectedItem.diagramType === 'GeneralDiagram') {
             if (selectedItems.length > 1) {
                 contextMenu.enableItems(['Align Objects', 'Distribute Objects', 'Match Size', 'Lock', 'Unlock', 'Group'], true);
+                for (let i = 0; i < 1; i++) {
+                    if(selectedItems[i].constraints & ej.diagrams.NodeConstraints.Drag) {
+                        contextMenu.enableItems(['Lock'], true);
+                        contextMenu.enableItems(['Unlock'], false);
+                    }
+                    else {
+                        contextMenu.enableItems(['Lock'], false);
+                        contextMenu.enableItems(['Unlock'], true);
+                    }
+                }
             }
             else if (selectedItems.length === 1) {
                 contextMenu.enableItems(['Send To Back', 'Bring To Front', 'Send Backward', 'Bring Forward']);
-                var object = selectedItems[0];
+                const object = selectedItems[0];
                 if (object instanceof ej.diagrams.Node) {
                     if (object.children && object.children.length > 0) {
                         contextMenu.enableItems(['Ungroup']);
                     }
                     if (object.constraints & ej.diagrams.NodeConstraints.Drag) {
                         contextMenu.enableItems(['Lock'], true);
+                        contextMenu.enableItems(['Unlock'], false);
                     }
                     else {
                         contextMenu.enableItems(['Unlock'], true);
+                        contextMenu.enableItems(['Lock'], false);
                     }
                 }
             }
         }
-    };
-    UtilityMethods.prototype.getPaperSize = function (paperName) {
-        var paperSize = new PaperSize();
+    }
+
+    getPaperSize(paperName) {
+        const paperSize = new PaperSize();
         switch (paperName) {
             case 'Letter':
                 paperSize.pageWidth = 816;
@@ -630,9 +715,10 @@ var UtilityMethods = (function () {
                 break;
         }
         return paperSize;
-    };
-    UtilityMethods.prototype.removeChild = function (selectedItem) {
-        var diagram = selectedItem.selectedDiagram;
+    }
+
+    removeChild(selectedItem) {
+        const diagram = selectedItem.selectedDiagram;
         if (diagram.selectedItems.nodes.length > 0) {
             selectedItem.preventPropertyChange = true;
             diagram.historyManager.startGroupAction();
@@ -642,12 +728,13 @@ var UtilityMethods = (function () {
             selectedItem.preventPropertyChange = false;
         }
         selectedItem.isModified = true;
-    };
-    UtilityMethods.prototype.removeSubChild = function (node, selectedItem) {
-        var diagram = selectedItem.selectedDiagram;
-        for (var i = node.outEdges.length - 1; i >= 0; i--) {
-            var connector = MindMapUtilityMethods.getConnector(diagram.connectors, node.outEdges[i]);
-            var childNode = MindMapUtilityMethods.getNode(diagram.nodes, connector.targetID);
+    }
+
+    removeSubChild(node, selectedItem) {
+        const diagram = selectedItem.selectedDiagram;
+        for (let i = node.outEdges.length - 1; i >= 0; i--) {
+            const connector = MindMapUtilityMethods.getConnector(diagram.connectors, node.outEdges[i]);
+            const childNode = MindMapUtilityMethods.getNode(diagram.nodes, connector.targetID);
             if (childNode != null && childNode.outEdges.length > 0) {
                 this.removeSubChild(childNode, selectedItem);
             }
@@ -655,17 +742,17 @@ var UtilityMethods = (function () {
                 diagram.remove(childNode);
             }
         }
-        for (var j = node.inEdges.length - 1; j >= 0; j--) {
-            var connector = MindMapUtilityMethods.getConnector(diagram.connectors, node.inEdges[j]);
-            var childNode = MindMapUtilityMethods.getNode(diagram.nodes, connector.sourceID);
-            var index = childNode.outEdges.indexOf(connector.id);
+        for (let j = node.inEdges.length - 1; j >= 0; j--) {
+            const connector = MindMapUtilityMethods.getConnector(diagram.connectors, node.inEdges[j]);
+            const childNode = MindMapUtilityMethods.getNode(diagram.nodes, connector.sourceID);
+            let index = childNode.outEdges.indexOf(connector.id);
             if (childNode.outEdges.length > 1 && index === 0) {
                 index = childNode.outEdges.length;
             }
             if (index > 0) {
-                var node1 = childNode.outEdges[index - 1];
-                var connector1 = diagram.getObject(node1);
-                var node2 = MindMapUtilityMethods.getNode(diagram.nodes, connector1.targetID);
+                const node1 = childNode.outEdges[index - 1];
+                const connector1 = diagram.getObject(node1);
+                const node2 = MindMapUtilityMethods.getNode(diagram.nodes, connector1.targetID);
                 diagram.select([node2]);
             }
             else {
@@ -673,24 +760,27 @@ var UtilityMethods = (function () {
             }
         }
         diagram.remove(node);
-    };
-    UtilityMethods.prototype.cutLayout = function (selectedItem) {
-        var diagram = selectedItem.selectedDiagram;
+    }
+
+    cutLayout(selectedItem) {
+        const diagram = selectedItem.selectedDiagram;
         if (diagram.selectedItems.nodes.length) {
             selectedItem.utilityMethods.copyLayout(selectedItem);
             selectedItem.utilityMethods.removeChild(selectedItem);
             diagram.doLayout();
             selectedItem.isModified = true;
         }
-    };
-    UtilityMethods.prototype.copyLayout = function (selectedItem) {
-        var diagram = selectedItem.selectedDiagram;
-        var selectedNode = diagram.selectedItems.nodes[0];
+    }
+
+    copyLayout(selectedItem) {
+        const diagram = selectedItem.selectedDiagram;
+        const selectedNode = diagram.selectedItems.nodes[0];
         if (selectedNode.id !== 'rootNode') {
             selectedItem.pasteData = CommonKeyboardCommands.cloneSelectedItemswithChildElements();
         }
-    };
-    UtilityMethods.prototype.pasteLayout = function (selectedItem) {
+    }
+
+    pasteLayout(selectedItem) {
         selectedItem.isCopyLayoutElement = true;
         if (selectedItem.diagramType === 'MindMap') {
             MindMapUtilityMethods.mindmapPaste();
@@ -700,47 +790,51 @@ var UtilityMethods = (function () {
         }
         selectedItem.isCopyLayoutElement = false;
         selectedItem.isModified = true;
-    };
-    UtilityMethods.prototype.undoRedoLayout = function (isundo, selectedItem) {
-        var diagram = selectedItem.selectedDiagram;
-        if (isundo) {
+    }
+
+    undoRedoLayout(isUndo, selectedItem) {
+        const diagram = selectedItem.selectedDiagram;
+        if (isUndo) {
             diagram.undo();
         }
         else {
             diagram.redo();
         }
         if (diagram.selectedItems.nodes.length === 0) {
-            this.updateSectionforNode(selectedItem);
+            this.updateSectionForNode(selectedItem);
         }
         diagram.doLayout();
         selectedItem.isModified = true;
-    };
-    UtilityMethods.prototype.updateSectionforNode = function (selectedItem) {
-        var diagram = selectedItem.selectedDiagram;
-        for (var i = 0; i < diagram.nodes.length; i++) {
-            var newselection = diagram.nodes[i];
-            if (newselection.id === 'rootNode') {
+    }
+
+    updateSectionForNode(selectedItem) {
+        const diagram = selectedItem.selectedDiagram;
+        for (let i = 0; i < diagram.nodes.length; i++) {
+            const newSelection = diagram.nodes[i];
+            if (newSelection.id === 'rootNode') {
                 selectedItem.preventPropertyChange = true;
-                diagram.select([newselection]);
+                diagram.select([newSelection]);
                 selectedItem.preventPropertyChange = false;
             }
         }
-    };
-    UtilityMethods.prototype.updateLayout = function (selectedItem, bindBindingFields, imageField) {
-        for (var i = 0; i < selectedItem.selectedDiagram.nodes.length; i++) {
-            var node = selectedItem.selectedDiagram.nodes[i];
+    }
+
+    updateLayout(selectedItem, bindBindingFields, imageField) {
+        selectedItem.selectedDiagram.constraints = selectedItem.selectedDiagram.constraints &= ~ej.diagrams.DiagramConstraints.UndoRedo;
+        for (let i = 0; i < selectedItem.selectedDiagram.nodes.length; i++) {
+            const node = selectedItem.selectedDiagram.nodes[i];
             if (node.id !== 'textNode') {
-                var nodeInfo = node.addInfo;
-                var keys = Object.keys(nodeInfo);
-                var bindingFields = [];
-                var additionalFields = [];
-                var propName = 'Name';
+                const nodeInfo = node.addInfo;
+                const keys = Object.keys(nodeInfo);
+                const bindingFields = [];
+                const additionalFields = [];
+                let propName = 'Name';
                 if (nodeInfo[propName] && nodeInfo[propName].checked) {
                     bindingFields.push(propName);
                 }
-                for (var i_1 = 0; i_1 < keys.length; i_1++) {
-                    var keyValue = nodeInfo[keys[i_1]];
-                    if (keyValue.type === 'bindingField') {
+                for (let i_1 = 0; i_1 < keys.length; i_1++) {
+                    const keyValue = nodeInfo[keys[i_1]];
+                    if (keyValue && keyValue.type === 'bindingField') {
                         if (keyValue.checked) {
                             if (bindBindingFields) {
                                 bindingFields.push(keys[i_1]);
@@ -756,7 +850,6 @@ var UtilityMethods = (function () {
                 if (!imageField) {
                     node.minWidth = 150;
                     node.minHeight = 50;
-                    node.maxHeight = 50;
                     selectedItem.selectedDiagram.dataBind();
                     node.shape = { type: 'Basic', shape: 'Rectangle', cornerRadius: 5 };
                     selectedItem.selectedDiagram.dataBind();
@@ -764,19 +857,19 @@ var UtilityMethods = (function () {
                 else if (imageField) {
                     node.minWidth = 300;
                     node.minHeight = 100;
-                    node.maxHeight = 100;
                     selectedItem.selectedDiagram.dataBind();
                     node.shape = {
                         type: 'Image', source: nodeInfo[propName] && nodeInfo[propName].value ? nodeInfo[propName].value.toString() : 'src/assets/dbstyle/orgchart_images/blank-male.jpg',
                         align: 'XMinYMin', scale: 'Meet'
                     };
+                    node.addInfo[propName].value = node.shape.source;
                     selectedItem.selectedDiagram.dataBind();
                 }
-                var annotations = [];
-                var startY = 0.5 - ((bindingFields.length - 1) / 10);
-                for (var i_2 = 0; i_2 < bindingFields.length; i_2++) {
-                    var annotation1 = {
-                        content: nodeInfo[bindingFields[i_2]].value.toString(), offset: { x: 0.5, y: startY }
+                const annotations = [];
+                let startY = 0.5 - ((bindingFields.length - 1) / 10);
+                for (let i_2 = 0; i_2 < bindingFields.length; i_2++) {
+                    const annotation1 = {
+                        content: nodeInfo[bindingFields[i_2]].value.toString() || bindingFields[i_2], addInfo: bindingFields[i_2], offset: { x: 0.5, y: startY }
                     };
                     if (node.shape && node.shape.type === 'Image') {
                         annotation1.offset.x = 0;
@@ -792,11 +885,11 @@ var UtilityMethods = (function () {
                 if (annotations.length > 0) {
                     selectedItem.selectedDiagram.addLabels(node, annotations);
                 }
-                var content = '';
+                let content = '';
                 if (additionalFields.length > 0) {
-                    for (var i_3 = 0; i_3 < additionalFields.length; i_3++) {
+                    for (let i_3 = 0; i_3 < additionalFields.length; i_3++) {
                         if (nodeInfo[additionalFields[i_3]].value) {
-                            content = content + additionalFields[i_3] + ':' + nodeInfo[additionalFields[i_3]].value + '\n';
+                            content += additionalFields[i_3] + ':' + nodeInfo[additionalFields[i_3]].value + '\n';
                         }
                     }
                 }
@@ -812,6 +905,175 @@ var UtilityMethods = (function () {
         selectedItem.selectedDiagram.dataBind();
         selectedItem.selectedDiagram.doLayout();
         selectedItem.isModified = true;
-    };
-    return UtilityMethods;
-}());
+        selectedItem.selectedDiagram.constraints = selectedItem.selectedDiagram.constraints |= ej.diagrams.DiagramConstraints.UndoRedo;
+    }
+
+    createShortCutDiv() {
+        let shortCut = document.getElementById('customShortcutDiv');
+        if (!shortCut) {
+            let div = document.createElement('div');
+            div.id = 'customShortcutDiv';
+            div.innerHTML = this.getShortCutDiv();
+            div.style.zIndex = 10000;
+            div.style.position = 'absolute';
+            div.style.userSelect = 'none';
+            div.style.cursor = 'move';
+            document.body.appendChild(div);
+
+            // Make the div draggable
+            let isDragging = false;
+            let offsetX, offsetY;
+
+            div.addEventListener('mousedown', function (e) {
+                isDragging = true;
+                offsetX = e.clientX - div.offsetLeft;
+                offsetY = e.clientY - div.offsetTop;
+            });
+
+            document.addEventListener('mousemove', function (e) {
+                if (isDragging) {
+                    div.style.left = (e.clientX - offsetX) + 'px';
+                    div.style.top = (e.clientY - offsetY) + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', function () {
+                isDragging = false;
+            });
+            document.getElementById('customShortcutDiv').querySelector('#closeIconDiv').onclick = this.toggleShortcutVisibility.bind(this);
+        } else if (shortCut && shortCut.style.display !== 'block') {
+            shortCut.style.display = 'block';
+        }
+    }
+
+    getShortCutDiv() {
+        return `<div style="width: 400px; height: 300px; padding: 10px; background-color: #FFF7B5; border: 1px solid #FFF7B5">
+            <div id="closeIconDiv" style="float: right; width: 22px; height: 22px; border: 1px solid #FFF7B5">
+                <span class="sf-icon-Close" style="font-size:14px;cursor:pointer;"></span>
+            </div>
+            <div>
+                <span class="db-html-font-medium">Quick shortcuts</span>
+            </div>
+            <div style="padding-top:10px">
+                <ul>
+                    <li>
+                        <span class="db-html-font-medium">Tab : </span>
+                        <span class="db-html-font-normal">Add a child to parent</span>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <ul>
+                    <li>
+                        <span class="db-html-font-medium">Enter : </span>
+                        <span class="db-html-font-normal">Add a child to the same level</span>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <ul>
+                    <li>
+                        <span class="db-html-font-medium">Shift + Tab : </span>
+                        <span class="db-html-font-normal">Move the child parent to the next level</span>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <ul>
+                    <li>
+                        <span class="db-html-font-medium">Delete : </span>
+                        <span class="db-html-font-normal">Delete a topic</span>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <ul>
+                    <li>
+                        <span class="db-html-font-medium">F2 : </span>
+                        <span class="db-html-font-normal">Edit a topic</span>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <ul>
+                    <li>
+                        <span class="db-html-font-medium">Esc : </span>
+                        <span class="db-html-font-normal">End text editing</span>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <ul>
+                    <li>
+                        <span class="db-html-font-medium">Arrow(Up, Down, Left, Right) : </span>
+                        <span class="db-html-font-normal">Navigate between child</span>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <ul>
+                    <li>
+                        <span class="db-html-font-medium">F1 : </span>
+                        <span class="db-html-font-normal">Show/Hide shortcut Key</span>
+                    </li>
+                </ul>
+            </div>
+        </div>`;
+    }
+
+    toggleShortcutVisibility() {
+        const shortcutDiv = document.getElementById('customShortcutDiv');
+        if (shortcutDiv) {
+            shortcutDiv.style.display = (shortcutDiv.style.display === 'block' || shortcutDiv.style.display === '') ? 'none' : 'block';
+        }
+    }
+    hideShortcutVisibility() {
+        const shortcutDiv = document.getElementById('customShortcutDiv');
+        if (shortcutDiv) {
+            shortcutDiv.style.display = 'none';
+        }
+    }
+    showShortcutVisibility() {
+        const shortcutDiv = document.getElementById('customShortcutDiv');
+        if (shortcutDiv) {
+            shortcutDiv.style.display = 'block';
+        }
+    }
+    updatePalette(diagram) {
+        const diagramContainer = document.getElementsByClassName('diagrambuilder-container')[0];
+        const propertyContainer = document.getElementsByClassName('db-property-editor-container')[0];
+        if (diagramContainer.classList.contains('hide-palette')) {
+            diagramContainer.classList.remove('hide-palette');
+            diagramContainer.classList.remove('custom-diagram');
+            diagram.updateViewPort();
+        }
+        if (propertyContainer.classList.contains('orgchart-diagram')) {
+            propertyContainer.classList.remove('orgchart-diagram');
+        } else if (propertyContainer.classList.contains('mindmap-diagram')) {
+            propertyContainer.classList.remove('mindmap-diagram')
+        }
+    }
+
+    resetZoomTo100(diagram) {
+        const currentZoom = diagram.scrollSettings.currentZoom;
+        if (currentZoom !== 1) {
+            const zoom = { zoomFactor: (1 / currentZoom) - 1 };
+            diagram.zoomTo(zoom);
+            let zoomCurrentValue = document.getElementById("btnZoomIncrement").ej2_instances[0];
+            zoomCurrentValue.content = (diagram.scrollSettings.currentZoom * 100).toFixed() + '%';
+        }
+    }
+
+    updatePages(selectedItem, type) {
+        let page = new PageCreation(selectedItem);
+        let diagramString = selectedItem.selectedDiagram.saveDiagram();
+        let diagramObject = JSON.parse(diagramString);
+        let pageOption = { text: 'Page1', name: 'page1', diagram: JSON.parse(selectedItem.selectedDiagram.saveDiagram()) };
+        diagramObject.activePage = 'page1';
+        diagramObject.pageOptionList = [pageOption];
+        diagramObject.diagramType = type;
+        page.loadPage(JSON.stringify(diagramObject));
+    }
+}
+
+export default UtilityMethods;

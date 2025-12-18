@@ -73,6 +73,8 @@ input, button, select, textarea {
 
 .db-diagram-name-container.db-edit-name #diagramEditable {
     display: block;
+    background: white;
+    color: #000000;
 }
 
 .db-diagram-name {
@@ -100,7 +102,7 @@ input, button, select, textarea {
 .db-toolbar-editor {
     height: 48px;
     background-color: #e3e3e3;
-    padding: 10px 20px;
+    padding: 10px 10px 10px 20px;
 }
 
 .db-toolbar-container {
@@ -155,6 +157,7 @@ input, button, select, textarea {
     background-color:#fafafa;
     width:100%;
     height:calc(100% - 28px);
+    margin-top: 10px; /* sets the search shapes text box properly and fully visible*/
 }
 
 .sidebar.show-overview .db-palette-parent {
@@ -162,7 +165,7 @@ input, button, select, textarea {
 }
 
 .db-palette-more-shapes {
-    background-color:#F1F1F1; 
+    background-color:#F1F1F1;
     width:100%;
     height: 28px;
     padding: 0px 8px;
@@ -309,7 +312,7 @@ input, button, select, textarea {
     display: none;
 }
 
-.diagrambuilder-container.hide-toolbar .sidebar, 
+.diagrambuilder-container.hide-toolbar .sidebar,
 .diagrambuilder-container.hide-toolbar .main-content {
     height: calc(100% - 64px);
 }
@@ -342,7 +345,7 @@ input, button, select, textarea {
 }
 
 .db-current-diagram-container {
-    height: calc(100% - 28px);
+    height: calc(100% - 39px);
 }
 
 .diagrambuilder-container.hide-pager .db-current-diagram-container {
@@ -399,7 +402,7 @@ input, button, select, textarea {
 
 .db-more-diagram-options-container {
     height: 28px;
-    background-color:#F1F1F1; 
+    background-color:#F1F1F1;
     border-top: 1px solid #CBCBCB;
     border-left: 1px solid #CBCBCB;
 }
@@ -640,6 +643,7 @@ input, button, select, textarea {
     float: right;
     color: #999999;
     font-size: 12px;
+    padding-left: 50px; /* Sets the distance between menu item and shortcut code*/
 }
 
 /* Menu Bar Customization - End */
@@ -673,7 +677,7 @@ input, button, select, textarea {
 
 #toolbarEditor .e-toolbar-items .e-toolbar-item.e-separator {
     margin: 0px;
-    width: calc((100% - 988px)/8);
+    width: calc((99% - 988px)/8);
     background-color: #e3e3e3;
 }
 
@@ -681,8 +685,8 @@ input, button, select, textarea {
     border-right: 0px;
 }
 
-#toolbarNodeInsert {
-    width: 68px !important;
+#toolbarNodeInsertParent .e-toolbar-items {
+    background: #f2f2f2; /* To set the background color to insert image toolbar similar to property panel*/
 }
 
 .db-property-editor-container .e-toolbar .e-toolbar-items .e-toolbar-item:not(.e-separator) {
@@ -690,7 +694,18 @@ input, button, select, textarea {
 }
 
 .db-property-editor-container #toolbarTextAlignment .e-toolbar-items .e-toolbar-item:not(.e-separator) {
-    width: calc(100% / 6);
+    /* width: calc(100% / 6); */
+}
+
+#toolbarTextAlignmentHor,
+#toolbarTextAlignmentVer,
+#mindmapTextStyleToolbar,
+#orgChartAlignment,
+#toolbarTextAlignmentHor .e-toolbar-items,
+#toolbarTextAlignmentVer .e-toolbar-items,
+#mindmapTextStyleToolbar .e-toolbar-items,
+#orgChartAlignment .e-toolbar-items {
+  background: #f2f2f2; /* To set the background color to text align toolbar, font style toolbar in mindmap similar to property panel*/
 }
 
 .db-property-editor-container #orgChartAlignment .e-toolbar-items .e-toolbar-item:not(.e-separator) {
@@ -933,7 +948,7 @@ input, button, select, textarea {
 .db-toolbar-container.db-multiple #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-space-category,
 .db-toolbar-container.db-select.db-node #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-fill,
 .db-toolbar-container.db-select.db-group #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-ungroup,
-.db-toolbar-container.db-undo #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-undo, 
+.db-toolbar-container.db-undo #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-undo,
 .db-toolbar-container.db-redo #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-redo {
     pointer-events: all;
 }
@@ -945,7 +960,7 @@ input, button, select, textarea {
 .db-toolbar-container.db-multiple #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-space-category .e-tbar-btn,
 .db-toolbar-container.db-select.db-node #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-fill .e-tbar-btn,
 .db-toolbar-container.db-select.db-group #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-ungroup .e-tbar-btn,
-.db-toolbar-container.db-undo #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-undo .e-tbar-btn, 
+.db-toolbar-container.db-undo #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-undo .e-tbar-btn,
 .db-toolbar-container.db-redo #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-redo .e-tbar-btn {
     background: #ffffff;
 }
@@ -957,7 +972,7 @@ input, button, select, textarea {
 .db-toolbar-container.db-multiple #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-space-category .e-icons.e-btn-icon,
 .db-toolbar-container.db-select.db-node #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-fill .e-icons.e-btn-icon,
 .db-toolbar-container.db-select.db-group #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-ungroup .e-icons.e-btn-icon,
-.db-toolbar-container.db-undo #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-undo .e-icons.e-btn-icon, 
+.db-toolbar-container.db-undo #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-undo .e-icons.e-btn-icon,
 .db-toolbar-container.db-redo #toolbarEditor .e-toolbar-items .e-toolbar-item.tb-item-redo .e-icons.e-btn-icon {
     color: #757575;
 }
@@ -1113,7 +1128,7 @@ input[type="color"]::-moz-color-swatch {
     border: none;
 }
 
-.db-color-container .e-btn, 
+.db-color-container .e-btn,
 .db-text-container .e-btn {
     width: 100%;
     height: 100%;
@@ -1159,7 +1174,7 @@ input[type="color"]::-moz-color-swatch {
 
 /* Property Panel Customization - End */
 
-/* .db-property-editor-container .e-input-group, 
+/* .db-property-editor-container .e-input-group,
 .db-property-editor-container .e-input-group.e-control-wrapper {
     margin-bottom: 0px;
 } */
@@ -1349,22 +1364,10 @@ input[type="color"]::-moz-color-swatch {
     top: -6px;
 }
 
-.e-dialog .e-btn.e-dlg-closeicon-btn:hover, 
-.e-dialog .e-btn.e-dlg-closeicon-btn:focus, 
+.e-dialog .e-btn.e-dlg-closeicon-btn:hover,
+.e-dialog .e-btn.e-dlg-closeicon-btn:focus,
 .e-dialog .e-btn.e-dlg-closeicon-btn:active {
     background-color: transparent;
-}
-
-/* Print Dialog Customization */
-
-#printDialog .e-dlg-header-content + .e-dlg-content input[type="text"] {
-    height: 100%;
-    border: 0px;
-    text-indent: 0;
-}
-
-#printDialog .db-text {
-    margin-top: 5px;
 }
 
 /* Upload Dialog Customization */
@@ -1451,7 +1454,7 @@ input[type="color"]::-moz-color-swatch {
 }
 
 .db-info-text {
-    float:left; 
+    float:left;
     height: 18px;
     margin-top:2px
 }
@@ -1627,7 +1630,7 @@ input.db-layer-edit {
 }
 
 .db-custom-prop-info-template .propertyNameDiv {
-    width: 30%; 
+    width: 30%;
     height: 20px;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -1636,12 +1639,12 @@ input.db-layer-edit {
 }
 
 .db-custom-prop-info-template .propertyValueDiv {
-    width: calc(60% - 10px); 
+    width: calc(60% - 10px);
     height: 27px;
 }
 
 .db-custom-prop-info-template .propertyLabelDiv {
-    float: left; 
+    float: left;
     width: 5%;
     height: 20px;
     padding-top: 4px;
@@ -1980,7 +1983,7 @@ input.db-layer-edit {
 }
 
 /* Radio Button - Customization End */
- 
+
 /* Diagram Template Style - Start */
 
 .db-diagram-template-div {
@@ -2069,7 +2072,7 @@ input.db-layer-edit {
 }
 
 .temp-left-pane {
-    border-right:1px solid #D4D4D4; 
+    border-right:1px solid #D4D4D4;
     height: 424px;
     padding: 0px;
 }
@@ -2320,7 +2323,7 @@ input:focus {
     border: 1px solid #D4D4D4;
 }
 
-#moreShapesDialog .e-listview .e-list-item.e-focused .e-checkbox-wrapper .e-frame.e-check, 
+#moreShapesDialog .e-listview .e-list-item.e-focused .e-checkbox-wrapper .e-frame.e-check,
 #moreShapesDialog .e-listview .e-list-item.e-focused .e-css.e-checkbox-wrapper .e-frame.e-check {
 	background-color: #046AE5;
     border-color: transparent;
@@ -2333,9 +2336,9 @@ input:focus {
     border-color: transparent;
 }
 
-input.e-input::selection, textarea.e-input::selection, input.e-input.e-css::selection, 
-textarea.e-input.e-css::selection, .e-input-group input.e-input::selection, 
-.e-input-group.e-control-wrapper input.e-input::selection, 
+input.e-input::selection, textarea.e-input::selection, input.e-input.e-css::selection,
+textarea.e-input.e-css::selection, .e-input-group input.e-input::selection,
+.e-input-group.e-control-wrapper input.e-input::selection,
 .e-float-input input::selection, .e-float-input.e-control-wrapper input::selection {
     background: #046AE5;
     color: white;
@@ -2352,7 +2355,7 @@ input.e-input::selection,
     height: 24px;
 }
 
-.e-input-group.e-input-focus:not(.e-float-icon-left):not(.e-success):not(.e-warning):not(.e-error), 
+.e-input-group.e-input-focus:not(.e-float-icon-left):not(.e-success):not(.e-warning):not(.e-error),
 .e-input-group.e-control-wrapper.e-input-focus:not(.e-float-icon-left):not(.e-success):not(.e-warning):not(.e-error) {
     border: none;
 }

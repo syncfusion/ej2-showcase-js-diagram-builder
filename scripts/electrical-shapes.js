@@ -1,8 +1,11 @@
-var ElectricalShapes = (function () {
-    function ElectricalShapes() {
+class ElectricalShapes {
+    constructor() {
+        // Initialization, if required, can be added here
     }
-    ElectricalShapes.prototype.getElectricalAudioShapes = function () {
-        var audioShapes = [
+
+
+    getElectricalAudioShapes () {
+        const audioShapes = [
             {
                 id: 'SHAPe_BELL2n9D723',
                 shape: {
@@ -460,8 +463,8 @@ var ElectricalShapes = (function () {
         }
         return audioShapes;
     };
-    ElectricalShapes.prototype.getElectricalCapcitorsShapes = function () {
-        var capacitorsShapes = [
+    getElectricalCapcitorsShapes () {
+        const capacitorsShapes = [
             {
                 id: 'SHAPE_CAPACITORUK2d0MhiT',
                 shape: {
@@ -2368,8 +2371,8 @@ var ElectricalShapes = (function () {
         }
         return capacitorsShapes;
     };
-    ElectricalShapes.prototype.getElectricalDiodesShapes = function () {
-        var diodeShapes = [
+    getElectricalDiodesShapes () {
+        const diodeShapes = [
             {
                 id: 'SHAPE_BREAKDOWN2TyDZFR',
                 shape: {
@@ -2993,8 +2996,8 @@ var ElectricalShapes = (function () {
         }
         return diodeShapes;
     };
-    ElectricalShapes.prototype.getElectricalGatesShapes = function () {
-        var gateShapes = [
+    getElectricalGatesShapes () {
+        const gateShapes = [
             {
                 "id": "Shape_ANDIEC2jTghLS",
                 "shape": {
@@ -4911,8 +4914,8 @@ var ElectricalShapes = (function () {
         }
         return gateShapes;
     };
-    ElectricalShapes.prototype.getElectricalInductorsShapes = function () {
-        var inductorsShapes = [
+    getElectricalInductorsShapes () {
+        const inductorsShapes = [
             {
                 id: 'SHAPE_1PHASEINDUCTIONVOLTAGEREGULATOR28ngSXD',
                 shape: {
@@ -6535,8 +6538,8 @@ var ElectricalShapes = (function () {
         }
         return inductorsShapes;
     };
-    ElectricalShapes.prototype.getElectricalInstrumentsShapes = function () {
-        var instrumentShapes = [
+    getElectricalInstrumentsShapes () {
+        const instrumentShapes = [
             {
                 id: 'SHAPE_AMPERMETER216PYm8',
                 shape: {
@@ -6716,8 +6719,8 @@ var ElectricalShapes = (function () {
         }
         return instrumentShapes;
     };
-    ElectricalShapes.prototype.getElectricalMiscShapes = function () {
-        var miscShapes = [
+    getElectricalMiscShapes () {
+        const miscShapes = [
             {
                 id: 'SHAPE_2CONDUCTORJACK2a8gZFk',
                 shape: {
@@ -10035,8 +10038,8 @@ var ElectricalShapes = (function () {
         }
         return miscShapes;
     };
-    ElectricalShapes.prototype.getElectricalOpticalShapes = function () {
-        var opticalShapes = [
+    getElectricalOpticalShapes () {
+        const opticalShapes = [
             {
                 id: 'SHAPE_LED2ycpV3b',
                 shape: {
@@ -10876,8 +10879,8 @@ var ElectricalShapes = (function () {
         }
         return opticalShapes;
     };
-    ElectricalShapes.prototype.getElectricalLadderShapes = function () {
-        var ladderShapes = [
+    getElectricalLadderShapes () {
+        const ladderShapes = [
             {
                 id: 'SHAPE_CONTACTN2TqjPoE',
                 shape: {
@@ -11256,8 +11259,8 @@ var ElectricalShapes = (function () {
         }
         return ladderShapes;
     };
-    ElectricalShapes.prototype.getElectricalResistorShapes = function () {
-        var resistorShapes = [
+    getElectricalResistorShapes () {
+        const resistorShapes = [
             {
                 id: 'SHAPE_ATTENUATOR2gmQsSJ',
                 shape: {
@@ -12325,8 +12328,8 @@ var ElectricalShapes = (function () {
         }
         return resistorShapes;
     };
-    ElectricalShapes.prototype.getElectricalEquipmentShapes = function () {
-        var equipmentShapes = [
+    getElectricalEquipmentShapes () {
+        const equipmentShapes = [
             {
                 id: 'SHAPE_ARMATURE2y7tUg6',
                 shape: {
@@ -12992,8 +12995,8 @@ var ElectricalShapes = (function () {
         }
         return equipmentShapes;
     };
-    ElectricalShapes.prototype.getElectricalSourcesShapes = function () {
-        var sourcesShapes = [
+    getElectricalSourcesShapes () {
+        const sourcesShapes = [
             {
                 id: 'SHAPE_AC2wodMyq',
                 shape: {
@@ -13538,8 +13541,8 @@ var ElectricalShapes = (function () {
         }
         return sourcesShapes;
     };
-    ElectricalShapes.prototype.getElectricalSwitchesShapes = function () {
-        var switchesShapes = [
+    getElectricalSwitchesShapes () {
+        const switchesShapes = [
             {
                 id: 'SHAPE_2POSITIONSWITCH2BDyixX',
                 shape: {
@@ -16107,8 +16110,8 @@ var ElectricalShapes = (function () {
         }
         return switchesShapes;
     };
-    ElectricalShapes.prototype.getElectricalTransmissionShapes = function () {
-        var transmissionShapes = [
+    getElectricalTransmissionShapes () {
+        const transmissionShapes = [
             {
                 id: 'SHAPE_2LINESBUSELBOW2UISPFS',
                 shape: {
@@ -17037,8 +17040,8 @@ var ElectricalShapes = (function () {
         }
         return transmissionShapes;
     };
-    ElectricalShapes.prototype.getElectricalTransistorsShapes = function () {
-        var transistorsShapes = [
+    getElectricalTransistorsShapes () {
+        const transistorsShapes = [
             {
                 id: 'SHAPE_BJTNPN2EojLgJ',
                 shape: {
@@ -18409,8 +18412,8 @@ var ElectricalShapes = (function () {
         }
         return transistorsShapes;
     };
-    ElectricalShapes.prototype.getElectricalVaccumShapes = function () {
-        var vaccumShapes = [
+    getElectricalVaccumShapes () {
+        const vaccumShapes = [
             {
                 id: 'SHAPE_DIODE2iXKE4N',
                 shape: {
@@ -19386,8 +19389,8 @@ var ElectricalShapes = (function () {
         }
         return vaccumShapes;
     };
-    ElectricalShapes.prototype.getElectricalWaveformsShapes = function () {
-        var WaveformsShapes = [
+    getElectricalWaveformsShapes () {
+        const WaveformsShapes = [
             {
                 id: 'SHAPE_CHOPPEDSQUAREWAVE2rJmtK7',
                 shape: {
@@ -19548,7 +19551,7 @@ var ElectricalShapes = (function () {
         }
         return WaveformsShapes;
     };
-    ElectricalShapes.prototype.getElectricalShapes = function () {
+    getElectricalShapes () {
         return [
             { id: 'electricalAudio', expanded: false, symbols: this.getElectricalAudioShapes(), title: 'Electrical / Audio' },
             { id: 'electricalCapacitors', expanded: false, symbols: this.getElectricalCapcitorsShapes(), title: 'Electrical / Capacitors' },
@@ -19569,5 +19572,6 @@ var ElectricalShapes = (function () {
             { id: 'electricalWaveForms', expanded: false, symbols: this.getElectricalWaveformsShapes(), title: 'Electrical / Waveforms' },
         ];
     };
-    return ElectricalShapes;
-}());
+}
+
+export default ElectricalShapes;

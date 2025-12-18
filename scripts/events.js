@@ -1,22 +1,27 @@
-var DiagramClientSideEvents = (function () {
-    function DiagramClientSideEvents(selectedItem, page) {
+import { selectedItem,diagramEvents } from '../index.js';  // The correct path to index.js
+import {MindMapUtilityMethods} from './mindmap';
+import {OrgChartUtilityMethods} from './orgchart';
+
+class DiagramClientSideEvents {
+    constructor(selectedItem, page) {
         this.selectedItem = selectedItem;
         this.page = page;
     }
-    DiagramClientSideEvents.prototype.selectionChange = function (args) {
-        var diagram = selectedItem.selectedDiagram;
+
+    selectionChange(args) {
+        const diagram = selectedItem.selectedDiagram;
         if (selectedItem.preventSelectionChange || selectedItem.isLoading) {
             return;
         }
         if (args.state === 'Changed') {
             if (selectedItem.diagramType === 'MindMap') {
                 if (args.newValue.length === 1 && diagram.selectedItems.nodes.length === 1) {
-                    var node = args.newValue[0];
+                    const node = args.newValue[0];
                     diagram.selectedItems.userHandles[0].visible = false;
                     diagram.selectedItems.userHandles[1].visible = false;
                     diagram.selectedItems.userHandles[2].visible = false;
                     if (node.id !== 'textNode' && !(node instanceof ej.diagrams.Connector)) {
-                        var addInfo = node.addInfo;
+                        const addInfo = node.addInfo;
                         if (node.id === 'rootNode') {
                             diagram.selectedItems.userHandles[0].visible = true;
                             diagram.selectedItems.userHandles[1].visible = true;
@@ -40,7 +45,7 @@ var DiagramClientSideEvents = (function () {
             }
             else if (selectedItem.diagramType === 'OrgChart') {
                 if (args.newValue.length === 1) {
-                    var node = args.newValue[0];
+                    const node = args.newValue[0];
                     diagram.selectedItems.userHandles[0].visible = false;
                     diagram.selectedItems.userHandles[1].visible = false;
                     diagram.selectedItems.userHandles[2].visible = false;
@@ -52,10 +57,10 @@ var DiagramClientSideEvents = (function () {
                 }
             }
             else {
-                var selectedItems = selectedItem.selectedDiagram.selectedItems.nodes;
+                let selectedItems = selectedItem.selectedDiagram.selectedItems.nodes;
                 selectedItems = selectedItems.concat(selectedItem.selectedDiagram.selectedItems.connectors);
                 selectedItem.utilityMethods.enableToolbarItems(selectedItems);
-                var nodeContainer = document.getElementById('nodePropertyContainer');
+                const nodeContainer = document.getElementById('nodePropertyContainer');
                 nodeContainer.classList.remove('multiple');
                 nodeContainer.classList.remove('connector');
                 if (selectedItems.length > 1) {
@@ -69,15 +74,14 @@ var DiagramClientSideEvents = (function () {
                 }
             }
         }
-    };
+    }
 
-    DiagramClientSideEvents.prototype.multipleSelectionSettings = function (selectedItems) {
+    multipleSelectionSettings(selectedItems) {
         selectedItem.utilityMethods.objectTypeChange('None');
-        var showConnectorPanel = false, showNodePanel = false;
-        var showTextPanel = false, showConTextPanel = false;
-        var nodeContainer = document.getElementById('nodePropertyContainer');
-        for (var i = 0; i < selectedItems.length; i++) {
-            var object = selectedItems[i];
+        let showConnectorPanel = false, showNodePanel = false;
+        let showTextPanel = false, showConTextPanel = false;
+        const nodeContainer = document.getElementById('nodePropertyContainer');
+        selectedItems.forEach(object => {
             if (object instanceof ej.diagrams.Node && (!showNodePanel || !showTextPanel)) {
                 showNodePanel = true;
                 showTextPanel = object.annotations.length > 0 && object.annotations[0].content ? true : false;
@@ -86,8 +90,10 @@ var DiagramClientSideEvents = (function () {
                 showConnectorPanel = true;
                 showConTextPanel = object.annotations.length > 0 && object.annotations[0].content ? true : false;
             }
-        }
-        var selectItem1 = selectedItem.selectedDiagram.selectedItems;
+        });
+
+        const selectItem1 = selectedItem.selectedDiagram.selectedItems;
+        let bindNode;
         if (showNodePanel) {
             nodeContainer.style.display = '';
             nodeContainer.classList.add('multiple');
@@ -95,6 +101,13 @@ var DiagramClientSideEvents = (function () {
                 nodeContainer.classList.add('connector');
             }
             selectedItem.utilityMethods.bindNodeProperties(selectItem1.nodes[0], selectedItem);
+            if (selectItem1.nodes && selectItem1.nodes.length > 0) {
+                bindNode = selectItem1.nodes.find(node=>node.annotations && node.annotations.length > 0);
+                if (bindNode) {
+                    selectedItem.utilityMethods.bindTextProperties(bindNode.annotations[0].style, selectedItem);
+                    selectedItem.utilityMethods.updateHorVertAlign(bindNode.annotations[0].horizontalAlignment, bindNode.annotations[0].verticalAlignment);
+                }
+            }
         }
         if (showConnectorPanel && !showNodePanel) {
             document.getElementById('connectorPropertyContainer').style.display = '';
@@ -111,24 +124,24 @@ var DiagramClientSideEvents = (function () {
                 document.getElementById('textColorDiv').className = 'col-xs-6 db-col-right';
                 if (showConTextPanel) {
                     diagramEvents.ddlTextPosition.dataSource = selectedItem.textProperties.getConnectorTextPositions();
-                    //selectedItem.utilityMethods.bindTextProperties(selectItem1.connectors[0].annotations[0].style, selectedItem);
                 }
                 else {
                     diagramEvents.ddlTextPosition.dataSource = selectedItem.textProperties.getNodeTextPositions();
-                    //selectedItem.utilityMethods.bindTextProperties(selectItem1.connectors[0].annotations[0].style, selectedItem);
+                    diagramEvents.ddlTextPosition.value = diagramEvents.ddlTextPosition.value || selectedItem.utilityMethods.getPosition(bindNode.annotations[0].offset);
                 }
                 diagramEvents.ddlTextPosition.dataBind();
             }
         }
-    };
-    DiagramClientSideEvents.prototype.singleSelectionSettings = function (selectedObject) {
-        var object = null;
+    }
+
+    singleSelectionSettings(selectedObject) {
+        let object = null;
         if (selectedObject instanceof ej.diagrams.Node) {
             selectedItem.utilityMethods.objectTypeChange('node');
             object = selectedObject;
             selectedItem.utilityMethods.bindNodeProperties(object, selectedItem);
         }
-        else if (selectedObject instanceof  ej.diagrams.Connector) {
+        else if (selectedObject instanceof ej.diagrams.Connector) {
             selectedItem.utilityMethods.objectTypeChange('connector');
             object = selectedObject;
             selectedItem.utilityMethods.bindConnectorProperties(object, selectedItem);
@@ -138,22 +151,28 @@ var DiagramClientSideEvents = (function () {
             document.getElementById('toolbarTextAlignmentDiv').style.display = 'none';
             document.getElementById('textPositionDiv').style.display = 'none';
             document.getElementById('textColorDiv').className = 'col-xs-6 db-col-left';
+            const opacitySlider = document.getElementById('textOpacityProp');
+            if (opacitySlider) {
+                opacitySlider.style.visibility = 'hidden';
+            }
             selectedItem.utilityMethods.bindTextProperties(object.style, selectedItem);
         }
         else if (object.annotations.length > 0 && object.annotations[0].content) {
             document.getElementById('textPropertyContainer').style.display = '';
-            var annotation = null;
+            let annotation = null;
             document.getElementById('toolbarTextAlignmentDiv').style.display = '';
             document.getElementById('textPositionDiv').style.display = '';
             document.getElementById('textColorDiv').className = 'col-xs-6 db-col-right';
+            const opacitySlider = document.getElementById('textOpacityProp');
+            if (opacitySlider) {
+                opacitySlider.style.visibility = 'visible';
+            }
             selectedItem.utilityMethods.bindTextProperties(object.annotations[0].style, selectedItem);
             selectedItem.utilityMethods.updateHorVertAlign(object.annotations[0].horizontalAlignment, object.annotations[0].verticalAlignment);
             if (object.annotations[0] instanceof ej.diagrams.ShapeAnnotation) {
                 annotation = object.annotations[0];
                 diagramEvents.ddlTextPosition.dataSource = selectedItem.textProperties.getNodeTextPositions();
-                diagramEvents.ddlTextPosition.value = selectedItem.textProperties.textPosition = null;
-                diagramEvents.ddlTextPosition.dataBind();
-                diagramEvents.ddlTextPosition.value = selectedItem.textProperties.textPosition = selectedItem.utilityMethods.getPosition(annotation.offset);
+                diagramEvents.ddlTextPosition.value = selectedItem.utilityMethods.getPosition(annotation.offset);
                 diagramEvents.ddlTextPosition.dataBind();
             }
             else if (object.annotations[0] instanceof ej.diagrams.PathAnnotation) {
@@ -165,8 +184,9 @@ var DiagramClientSideEvents = (function () {
                 diagramEvents.ddlTextPosition.dataBind();
             }
         }
-    };
-    DiagramClientSideEvents.prototype.nodePositionChange = function (args) {
+    }
+
+    nodePositionChange(args) {
         selectedItem.preventPropertyChange = true;
         selectedItem.nodeProperties.offsetX.value = (Math.round(args.newValue.offsetX * 100) / 100);
         selectedItem.nodeProperties.offsetY.value = (Math.round(args.newValue.offsetY * 100) / 100);
@@ -174,39 +194,48 @@ var DiagramClientSideEvents = (function () {
             selectedItem.isModified = true;
             selectedItem.preventPropertyChange = false;
         }
-    };
-    DiagramClientSideEvents.prototype.nodeSizeChange = function (args) {
+    }
+
+    nodeSizeChange(args) {
         selectedItem.preventPropertyChange = true;
         selectedItem.nodeProperties.width.value = (Math.round(args.newValue.width * 100) / 100);
         selectedItem.nodeProperties.height.value = (Math.round(args.newValue.height * 100) / 100);
+        selectedItem.nodeProperties.offsetX.value = (Math.round(args.source.offsetX * 100) / 100);
+        selectedItem.nodeProperties.offsetY.value = (Math.round(args.source.offsetY * 100) / 100);
         if (args.state === 'Completed') {
             selectedItem.isModified = true;
             selectedItem.preventPropertyChange = false;
         }
-    };
-    DiagramClientSideEvents.prototype.textEdit = function (args) {
+    }
+
+    textEdit(args) {
         if (selectedItem.diagramType === 'MindMap') {
-            setTimeout(function () { selectedItem.selectedDiagram.doLayout(); }, 10);
+            setTimeout(() => { selectedItem.selectedDiagram.doLayout(); }, 10);
         }
         selectedItem.isModified = true;
-    };
+    }
 
-    DiagramClientSideEvents.prototype.scrollChange = function (args) {
-        selectedItem.scrollSettings.currentZoom = (args.newValue.CurrentZoom * 100).toFixed() + '%';
-    };
-    DiagramClientSideEvents.prototype.nodeRotationChange = function (args) {
+    scrollChange(args) {
+        var btnZoomIncrement = document.getElementById("btnZoomIncrement").ej2_instances[0];
+        if (btnZoomIncrement) {
+            btnZoomIncrement.content = Math.round(args.newValue.CurrentZoom * 100) + ' %';	 
+        }
+    }
+
+    nodeRotationChange(args) {
         selectedItem.preventPropertyChange = true;
         selectedItem.nodeProperties.rotateAngle.value = (Math.round(args.newValue.rotateAngle * 100) / 100);
         selectedItem.preventPropertyChange = false;
         if (args.state === 'Completed') {
             selectedItem.isModified = true;
         }
-    };
-    DiagramClientSideEvents.prototype.diagramContextMenuClick = function (args) {
-        var diagram = selectedItem.selectedDiagram;
+    }
+
+    diagramContextMenuClick(args) {
+        const diagram = selectedItem.selectedDiagram;
         selectedItem.customContextMenu.updateBpmnShape(diagram, args.item);
-        var text = args.item.text;
-        if (text === 'Group' || text === 'Un Group' || text === 'Undo' || text === 'Redo' || text === 'Select All') {
+        const text = args.item.text;
+        if (['Group', 'Un Group', 'Undo', 'Redo', 'Select All'].includes(text)) {
             selectedItem.isModified = true;
             if (selectedItem.diagramType === 'MindMap' || selectedItem.diagramType === 'OrgChart') {
                 if (text === 'Undo' || text === 'Redo') {
@@ -233,20 +262,23 @@ var DiagramClientSideEvents = (function () {
                 selectedItem.utilityMethods.pasteLayout(selectedItem);
             }
         }
-    };
-    DiagramClientSideEvents.prototype.diagramContextMenuOpen = function (args) {
-        var diagram = selectedItem.selectedDiagram;
+    }
+
+    diagramContextMenuOpen(args) {
+        const diagram = selectedItem.selectedDiagram;
         args.hiddenItems = args.hiddenItems.concat(selectedItem.customContextMenu.getHiddenMenuItems(diagram));
-    };
-    DiagramClientSideEvents.prototype.dragEnter = function (args) {
-        var obj = args.element;
-        var ratio = 100 / obj.width;
+    }
+
+    dragEnter(args) {
+        const obj = args.element;
+        const ratio = 100 / obj.width;
         obj.width = 100;
         obj.height *= ratio;
-    };
-    DiagramClientSideEvents.prototype.historyChange = function (args) {
-        var diagram = selectedItem.selectedDiagram;
-        var toolbarContainer = document.getElementsByClassName('db-toolbar-container')[0];
+    }
+
+    historyChange(args) {
+        const diagram = selectedItem.selectedDiagram;
+        const toolbarContainer = document.getElementsByClassName('db-toolbar-container')[0];
         toolbarContainer.classList.remove('db-undo');
         toolbarContainer.classList.remove('db-redo');
         if (diagram.historyManager.undoStack.length > 0) {
@@ -255,46 +287,48 @@ var DiagramClientSideEvents = (function () {
         if (diagram.historyManager.redoStack.length > 0) {
             toolbarContainer.classList.add('db-redo');
         }
-    };
-    return DiagramClientSideEvents;
-}());
+    }
+}
 
-var DiagramPropertyBinding = (function () {
-    function DiagramPropertyBinding(selectedItem, page) {
+class DiagramPropertyBinding {
+    constructor(selectedItem, page) {
         this.selectedItem = selectedItem;
         this.page = page;
     }
-    DiagramPropertyBinding.prototype.pageBreaksChange = function (args) {
+
+    pageBreaksChange(args) {
         if (args.event) {
             selectedItem.pageSettings.pageBreaks = args.checked;
             selectedItem.selectedDiagram.pageSettings.showPageBreaks = args.checked;
         }
-    }; 
-    DiagramPropertyBinding.prototype.multiplePage = function (args) {
+    }
+
+    multiplePage(args) {
         if (args.event) {
-            selectedItem.printSettings.multiplePage = args.checked; 
+            selectedItem.printSettings.multiplePage = args.checked;
         }
-    };
-    DiagramPropertyBinding.prototype.paperListChange = function (args) {
+    }
+
+    paperListChange(args) {
         if (args.element) {
-            var diagram = selectedItem.selectedDiagram;
+            const diagram = selectedItem.selectedDiagram;
             document.getElementById('pageDimension').style.display = 'none';
             document.getElementById('pageOrientation').style.display = '';
             selectedItem.pageSettings.paperSize = args.value;
-            var paperSize = selectedItem.utilityMethods.getPaperSize(selectedItem.pageSettings.paperSize);
-            var pageWidth = paperSize.pageWidth;
-            var pageHeight = paperSize.pageHeight;
+            const paperSize = selectedItem.utilityMethods.getPaperSize(selectedItem.pageSettings.paperSize);
+            let pageWidth = paperSize.pageWidth;
+            let pageHeight = paperSize.pageHeight;
             if (pageWidth && pageHeight) {
                 if (selectedItem.pageSettings.isPortrait) {
                     if (pageWidth > pageHeight) {
-                        var temp = pageWidth;
+                        const temp = pageWidth;
                         pageWidth = pageHeight;
                         pageHeight = temp;
                     }
                 }
                 else {
                     if (pageHeight > pageWidth) {
-                        var temp = pageHeight;
+                        const temp = pageHeight;
                         pageHeight = pageWidth;
                         pageWidth = temp;
                     }
@@ -310,16 +344,17 @@ var DiagramPropertyBinding = (function () {
                 document.getElementById('pageDimension').style.display = '';
             }
         }
-    };
-    DiagramPropertyBinding.prototype.pageDimensionChange = function (args) {
+    }
+
+    pageDimensionChange(args) {
         if (args.event) {
-            var pageWidth = Number(selectedItem.pageSettings.pageWidth);
-            var pageHeight = Number(selectedItem.pageSettings.pageHeight);
-            var target = args.event.target;
+            let pageWidth = Number(selectedItem.pageSettings.pageWidth);
+            let pageHeight = Number(selectedItem.pageSettings.pageHeight);
+            let target = args.event.target;
             if (target.tagName.toLowerCase() === 'span') {
                 target = target.parentElement.children[0];
             }
-            var diagram = selectedItem.selectedDiagram;
+            const diagram = selectedItem.selectedDiagram;
             if (target.id === 'pageWidth') {
                 pageWidth = Number(target.value.replace(/,/g, ''));
             }
@@ -342,13 +377,14 @@ var DiagramPropertyBinding = (function () {
                 diagram.dataBind();
             }
         }
-    };
-    DiagramPropertyBinding.prototype.pageOrientationChange = function (args) {
+    }
+
+    pageOrientationChange(args) {
         if (args.event) {
-            var pageWidth = Number(selectedItem.pageSettings.pageWidth);
-            var pageHeight = Number(selectedItem.pageSettings.pageHeight);
-            var target = args.event.target;
-            var diagram = selectedItem.selectedDiagram;
+            let pageWidth = Number(selectedItem.pageSettings.pageWidth);
+            let pageHeight = Number(selectedItem.pageSettings.pageHeight);
+            const target = args.event.target;
+            const diagram = selectedItem.selectedDiagram;
             switch (target.id) {
                 case 'pagePortrait':
                     selectedItem.pageSettings.isPortrait = true;
@@ -365,65 +401,68 @@ var DiagramPropertyBinding = (function () {
             selectedItem.pageSettings.pageWidth = diagram.pageSettings.width;
             selectedItem.pageSettings.pageHeight = diagram.pageSettings.height;
         }
-    };
-    DiagramPropertyBinding.prototype.pageBackgroundChange1 = function (args) {
+    }
+
+    pageBackgroundChange1(args) {
         if (args.currentValue) {
-            // let target: HTMLInputElement = args.target as HTMLInputElement;
-            var diagram = selectedItem.selectedDiagram;
+            const diagram = selectedItem.selectedDiagram;
             diagram.pageSettings.background = {
                 color: args.currentValue.rgba
             };
             diagram.dataBind();
         }
-    };
-    DiagramPropertyBinding.prototype.textPositionChange = function (args) {
+    }
+
+    textPositionChange(args) {
         if (args.value !== null) {
             this.textPropertyChange('textPosition', args.value);
         }
-    };
-    DiagramPropertyBinding.prototype.toolbarTextStyleChange = function (args) {
+    }
+
+    toolbarTextStyleChange(args) {
         this.textPropertyChange(args.item.tooltipText, false);
-    };
-    DiagramPropertyBinding.prototype.toolbarTextSubAlignChange = function (args) {
-        var propertyName = args.item.tooltipText.replace(/[' ']/g, '');
+    }
+
+    toolbarTextSubAlignChange(args) {
+        const propertyName = args.item.tooltipText.replace(/[' ']/g, '');
         this.textPropertyChange(propertyName, propertyName);
-    };
-    DiagramPropertyBinding.prototype.toolbarTextAlignChange = function (args) {
-        var propertyName = args.item.tooltipText.replace('Align ', '');
+    }
+
+    toolbarTextAlignChange(args) {
+        let propertyName = args.item.tooltipText.replace('Align ', '');
+        const flipMap = { Left: 'Right', Right: 'Left', Top: 'Bottom', Bottom: 'Top' };
+        propertyName = flipMap[propertyName] || propertyName;
         this.textPropertyChange(propertyName, propertyName);
-    };
-    DiagramPropertyBinding.prototype.textPropertyChange = function (propertyName, propertyValue) {
+    }
+
+    textPropertyChange(propertyName, propertyValue) {
         if (!selectedItem.preventPropertyChange) {
-            var diagram = selectedItem.selectedDiagram;
-            var selectedObjects = diagram.selectedItems.nodes;
+            const diagram = selectedItem.selectedDiagram;
+            let selectedObjects = diagram.selectedItems.nodes;
             selectedObjects = selectedObjects.concat(diagram.selectedItems.connectors);
             propertyName = propertyName.toLowerCase();
             if (selectedObjects.length > 0) {
-                for (var i = 0; i < selectedObjects.length; i++) {
-                    var node = selectedObjects[i];
+                selectedObjects.forEach(node => {
                     if (node instanceof ej.diagrams.Node || node instanceof ej.diagrams.Connector) {
                         if (node.annotations.length > 0) {
-                            for (var j = 0; j < node.annotations.length; j++) {
-                                var annotation = null;
-                                if (node.annotations[j] instanceof ej.diagrams.ShapeAnnotation) {
-                                    annotation = node.annotations[j];
+                            node.annotations.forEach(annotation => {
+                                if (annotation instanceof ej.diagrams.ShapeAnnotation) {
                                     if (propertyName === 'textposition') {
                                         selectedItem.textProperties.textPosition = propertyValue.toString();
                                         annotation.offset = selectedItem.utilityMethods.getOffset(propertyValue);
                                     }
                                 }
-                                else if (node.annotations[j] instanceof ej.diagrams.PathAnnotation) {
-                                    annotation = node.annotations[j];
+                                else if (annotation instanceof ej.diagrams.PathAnnotation) {
                                     if (propertyName === 'textposition') {
                                         selectedItem.textProperties.textPosition = propertyValue.toString();
                                         annotation.alignment = selectedItem.textProperties.textPosition;
                                     }
                                 }
-                                if (propertyName === 'left' || propertyName === 'right' || propertyName === 'center') {
+                                if (['left', 'right', 'center'].includes(propertyName)) {
                                     annotation.horizontalAlignment = propertyValue;
                                     selectedItem.utilityMethods.updateHorVertAlign(annotation.horizontalAlignment, annotation.verticalAlignment);
                                 }
-                                else if (propertyName === 'top' || propertyName === 'bottom') {
+                                else if (['top', 'bottom'].includes(propertyName)) {
                                     annotation.verticalAlignment = propertyValue;
                                     selectedItem.utilityMethods.updateHorVertAlign(annotation.horizontalAlignment, annotation.verticalAlignment);
                                 }
@@ -434,19 +473,20 @@ var DiagramPropertyBinding = (function () {
                                 else {
                                     this.updateTextProperties(propertyName, propertyValue, annotation.style);
                                 }
-                            }
+                            });
                         }
-                        else if (node.shape && node.shape.type === 'Text') {
+                                                else if (node.shape && node.shape.type === 'Text') {
                             this.updateTextProperties(propertyName, propertyValue, node.style);
                         }
                     }
-                }
+                });
                 diagram.dataBind();
                 selectedItem.isModified = true;
             }
         }
-    };
-    DiagramPropertyBinding.prototype.updateTextProperties = function (propertyName, propertyValue, annotation) {
+    }
+
+    updateTextProperties(propertyName, propertyValue, annotation) {
         switch (propertyName) {
             case 'bold':
                 annotation.bold = !annotation.bold;
@@ -468,235 +508,228 @@ var DiagramPropertyBinding = (function () {
                 selectedItem.utilityMethods.updateTextAlign(annotation.textAlign);
                 break;
         }
-    };
-    DiagramPropertyBinding.prototype.updateToolbarState = function (toolbarName, isSelected, index) {
-        var toolbarTextStyle = document.getElementById(toolbarName);
-        if (toolbarTextStyle) {
-            toolbarTextStyle = toolbarTextStyle.ej2_instances[0];
-        }
-        if (toolbarTextStyle) {
-            var cssClass = toolbarTextStyle.items[index].cssClass;
-            toolbarTextStyle.items[index].cssClass = isSelected ? cssClass + ' tb-item-selected' : cssClass.replace(' tb-item-selected', '');
-            toolbarTextStyle.dataBind();
-        }
-    };
-    return DiagramPropertyBinding;
-}());
+    }
 
-var MindMapPropertyBinding = (function () {
-    function MindMapPropertyBinding(selectedItem) {
+    updateToolbarState(toolbarName, isSelected, index) {
+        const toolbarTextStyle = document.getElementById(toolbarName);
+        if (toolbarTextStyle) {
+            const instance = toolbarTextStyle.ej2_instances[0];
+            if (instance) {
+                const cssClass = instance.items[index].cssClass;
+                instance.items[index].cssClass = isSelected ? cssClass + ' tb-item-selected' : cssClass.replace(' tb-item-selected', '');
+                instance.dataBind();
+            }
+        }
+    }
+}
+
+class MindMapPropertyBinding {
+    constructor(selectedItem) {
         this.selectedItem = selectedItem;
     }
-    MindMapPropertyBinding.prototype.mindmapTextStyleChange = function (args) {
+
+    mindmapTextStyleChange(args) {
         this.updateMindMapTextStyle(args.item.tooltipText.toLowerCase(), false);
-    };
-    MindMapPropertyBinding.prototype.updateMindMapTextStyle = function (propertyName, propertyValue) {
-        var diagram = selectedItem.selectedDiagram;
+    }
+
+    updateMindMapTextStyle(propertyName, propertyValue) {
+        const diagram = selectedItem.selectedDiagram;
         if (diagram.nodes.length > 0) {
-            for (var i = 0; i < diagram.nodes.length; i++) {
-                var node = diagram.nodes[i];
+            diagram.nodes.forEach(node => {
                 if (node.addInfo && node.annotations.length > 0) {
-                    var annotation = node.annotations[0].style;
-                    var addInfo = node.addInfo;
-                    var levelType = selectedItem.mindmapSettings.levelType.value;
+                    const annotation = node.annotations[0].style;
+                    const addInfo = node.addInfo;
+                    const levelType = selectedItem.mindmapSettings.levelType.value;
+                    const mindmapTextStyleToolbar = document.getElementById('mindmapTextStyleToolbar').ej2_instances[0];
                     if ('Level' + addInfo.level === levelType || addInfo.level === levelType) {
                         switch (propertyName) {
                             case 'bold':
                                 annotation.bold = !annotation.bold;
+                                mindmapTextStyleToolbar.items[0].cssClass = annotation.bold ? 'tb-item-start tb-item-selected' : 'tb-item-start';
                                 break;
                             case 'italic':
                                 annotation.italic = !annotation.italic;
+                                mindmapTextStyleToolbar.items[1].cssClass = annotation.italic ? 'tb-item-middle tb-item-selected' : 'tb-item-middle';
                                 break;
                             case 'underline':
                                 annotation.textDecoration = annotation.textDecoration === 'None' || !annotation.textDecoration ? 'Underline' : 'None';
+                                mindmapTextStyleToolbar.items[2].cssClass = annotation.textDecoration === 'Underline' ? 'tb-item-end tb-item-selected' : 'tb-item-end';
                                 break;
                         }
                     }
                 }
-                diagram.dataBind();
-                selectedItem.isModified = true;
-            }
+            });
+            diagram.dataBind();
+            selectedItem.isModified = true;
         }
-    };
-    MindMapPropertyBinding.prototype.mindmapPatternChange = function (args) {
-        var target = args.target;
-        var diagram = selectedItem.selectedDiagram;
+    }
+
+    mindmapPatternChange(args) {
+        const target = args.target;
+        const diagram = selectedItem.selectedDiagram;
         diagram.historyManager.startGroupAction();
-        for (var i = 0; i < selectedItem.selectedDiagram.nodes.length; i++) {
-            var node = selectedItem.selectedDiagram.nodes[i];
+        selectedItem.selectedDiagram.nodes.forEach(node => {
             if (node.id !== 'textNode') {
                 if (target.className === 'mindmap-pattern-style mindmap-pattern1') {
-                    if (node.id === 'rootNode') {
-                        node.height = 50;
-                    }
-                    else {
-                        node.height = 20;
-                    }
-                }
-                else {
+                    node.height = node.id === 'rootNode' ? 50 : 20;
+                } else {
                     node.height = 50;
                 }
+                if (node.id !== 'rootNode') {
+                    selectedItem.childNodeHeight = node.height;
+                }
             }
-            selectedItem.selectedDiagram.dataBind();
-        }
-        for (var i = 0; i < selectedItem.selectedDiagram.connectors.length; i++) {
-            var connector = selectedItem.selectedDiagram.connectors[i];
+        });
+        selectedItem.selectedDiagram.connectors.forEach(connector => {
             switch (target.className) {
                 case 'mindmap-pattern-style mindmap-pattern1':
                     connector.type = 'Bezier';
+                    selectedItem.connectorType = 'Bezier';
                     MindMapUtilityMethods.templateType = 'template1';
                     break;
                 case 'mindmap-pattern-style mindmap-pattern2':
                     connector.type = 'Bezier';
+                    selectedItem.connectorType = 'Bezier';
                     MindMapUtilityMethods.templateType = 'template4';
                     break;
                 case 'mindmap-pattern-style mindmap-pattern3':
                     connector.type = 'Orthogonal';
+                    selectedItem.connectorType = 'Orthogonal';
                     MindMapUtilityMethods.templateType = 'template2';
                     break;
                 case 'mindmap-pattern-style mindmap-pattern4':
                     connector.type = 'Straight';
+                    selectedItem.connectorType = 'Straight';
                     MindMapUtilityMethods.templateType = 'template3';
                     break;
             }
-            selectedItem.selectedDiagram.dataBind();
-        }
+        });
         diagram.historyManager.endGroupAction();
         selectedItem.selectedDiagram.doLayout();
         selectedItem.isModified = true;
-    };
-    return MindMapPropertyBinding;
-}());
+    }
+}
 
-var OrgChartPropertyBinding = (function () {
-    function OrgChartPropertyBinding(selectedItem) {
+class OrgChartPropertyBinding {
+    constructor(selectedItem) {
         this.selectedItem = selectedItem;
     }
-    OrgChartPropertyBinding.prototype.orgDropDownChange = function (args) {
+
+    orgDropDownChange(args) {
         if (args.element) {
-            var value = args.value ? args.value.toString() : '';
-            if (args.element.id === 'employeeId') {
-                selectedItem.orgDataSettings.id = value;
-            }
-            else if (args.element.id === 'superVisorId') {
-                selectedItem.orgDataSettings.parent = value;
-            }
-            else if (args.element.id === 'orgNameField') {
-                selectedItem.orgDataSettings.nameField = value;
-            }
-            else if (args.element.id === 'orgImageField') {
-                selectedItem.orgDataSettings.imageField = value;
+            const value = args.value ? args.value.toString() : '';
+            const mappings = {
+                'employeeId': 'id',
+                'superVisorId': 'parent',
+                'orgNameField': 'nameField',
+                'orgImageField': 'imageField'
+            };
+            if (args.element.id in mappings) {
+                selectedItem.orgDataSettings[mappings[args.element.id]] = value;
             }
         }
-    };
-    OrgChartPropertyBinding.prototype.orgMultiSelectChange = function (args) {
+    }
+
+    orgMultiSelectChange(args) {
         if (args.element) {
-            if (args.element.id === 'orgAdditionalField') {
-                selectedItem.orgDataSettings.additionalFields = args.value;
-            }
-            else if (args.element.id === 'orgBindingFields') {
-                selectedItem.orgDataSettings.bindingFields = args.value;
+            const mappings = {
+                'orgAdditionalField': 'additionalFields',
+                'orgBindingFields': 'bindingFields'
+            };
+            if (args.element.id in mappings) {
+                selectedItem.orgDataSettings[mappings[args.element.id]] = args.value;
             }
         }
-    };
-    OrgChartPropertyBinding.prototype.orgChartSpacingChange = function (args) {
+    }
+
+    orgChartSpacingChange(args) {
         if (args.event) {
-            var target = args.event.target;
-            if (target.tagName.toLowerCase() === 'span') {
-                target = target.parentElement.children[0];
-            }
-            if (target.id === 'orgHorizontalSpacing') {
-                selectedItem.selectedDiagram.layout.horizontalSpacing = args.value;
-            }
-            else {
-                selectedItem.selectedDiagram.layout.verticalSpacing = args.value;
+            const target = args.event.target.tagName.toLowerCase() === 'span' ? args.event.target.parentElement.children[0] : args.event.target;
+            const spacingMapping = {
+                'orgHorizontalSpacing': 'horizontalSpacing',
+                'orgVerticalSpacing': 'verticalSpacing'
+            };
+            if (target.id in spacingMapping) {
+                selectedItem.selectedDiagram.layout[spacingMapping[target.id]] = args.value;
+                selectedItem.selectedDiagram.dataBind();
             }
         }
-    };
-    OrgChartPropertyBinding.prototype.orgChartAligmentChange = function (args) {
-        var diagram = selectedItem.selectedDiagram;
-        var commandType = args.item.tooltipText.replace(/[' ']/g, '').toLowerCase();
-        switch (commandType) {
-            case 'alignleft':
-                diagram.layout.horizontalAlignment = 'Left';
-                break;
-            case 'alignright':
-                diagram.layout.horizontalAlignment = 'Right';
-                break;
-            case 'aligncenter':
-                diagram.layout.horizontalAlignment = 'Center';
-                break;
-            case 'aligntop':
-                diagram.layout.verticalAlignment = 'Top';
-                break;
-            case 'alignmiddle':
-                diagram.layout.verticalAlignment = 'Center';
-                break;
-            case 'alignbottom':
-                diagram.layout.verticalAlignment = 'Bottom';
-                break;
+    }
+
+    orgChartAligmentChange(args) {
+        const diagram = selectedItem.selectedDiagram;
+        const commandType = args.item.tooltipText.replace(/[' ']/g, '').toLowerCase();
+        const alignmentMappings = {
+            'alignleft': 'Left',
+            'alignright': 'Right',
+            'aligncenter': 'Center',
+            'aligntop': 'Top',
+            'alignmiddle': 'Center',
+            'alignbottom': 'Bottom'
+        };
+        if (commandType in alignmentMappings) {
+            if (commandType.includes('alignleft') || commandType.includes('alignright') || commandType.includes('aligncenter')) {
+                diagram.layout.horizontalAlignment = alignmentMappings[commandType];
+            } else {
+                diagram.layout.verticalAlignment = alignmentMappings[commandType];
+            }
+            selectedItem.isModified = true;
         }
-        selectedItem.isModified = true;
-    };
-    OrgChartPropertyBinding.prototype.layoutOrientationChange = function (args) {
-        var target = args.target;
-        switch (target.className) {
-            case 'org-pattern-style org-pattern-1 vertical-alternate':
-                OrgChartUtilityMethods.subTreeAlignments = 'Alternate';
-                OrgChartUtilityMethods.subTreeOrientation = 'Vertical';
-                break;
-            case 'org-pattern-style org-pattern-2 vertical-left':
-                OrgChartUtilityMethods.subTreeAlignments = 'Left';
-                OrgChartUtilityMethods.subTreeOrientation = 'Vertical';
-                break;
-            case 'org-pattern-style org-pattern-3 vertical-right':
-                OrgChartUtilityMethods.subTreeAlignments = 'Right';
-                OrgChartUtilityMethods.subTreeOrientation = 'Vertical';
-                break;
-            case 'org-pattern-style org-pattern-4 horizontal-center':
-                OrgChartUtilityMethods.subTreeAlignments = 'Center';
-                OrgChartUtilityMethods.subTreeOrientation = 'Horizontal';
-                break;
-            case 'org-pattern-style org-pattern-5 horizontal-right':
-                OrgChartUtilityMethods.subTreeAlignments = 'Right';
-                OrgChartUtilityMethods.subTreeOrientation = 'Horizontal';
-                break;
-            case 'org-pattern-style org-pattern-6 horizontal-left':
-                OrgChartUtilityMethods.subTreeAlignments = 'Left';
-                OrgChartUtilityMethods.subTreeOrientation = 'Horizontal';
-                break;
+    }
+
+    layoutOrientationChange(args) {
+        const orientationMappings = {
+            'org-pattern-1': ['Vertical', 'Alternate'],
+            'org-pattern-2': ['Vertical', 'Left'],
+            'org-pattern-3': ['Vertical', 'Right'],
+            'org-pattern-4': ['Horizontal', 'Center'],
+            'org-pattern-5': ['Horizontal', 'Right'],
+            'org-pattern-6': ['Horizontal', 'Left']
+        };
+        const targetId = args.target.className.split(' ')[1];
+        if (targetId in orientationMappings) {
+            OrgChartUtilityMethods.subTreeOrientation = orientationMappings[targetId][0];
+            OrgChartUtilityMethods.subTreeAlignments = orientationMappings[targetId][1];
+            selectedItem.selectedDiagram.layout.getLayoutInfo = (node, options) => {
+                options.orientation = orientationMappings[targetId][0];
+                options.type = orientationMappings[targetId][1];
+            };
+            selectedItem.selectedDiagram.doLayout();
+            selectedItem.isModified = true;
         }
-        selectedItem.selectedDiagram.doLayout();
-        selectedItem.isModified = true;
-    };
-    OrgChartPropertyBinding.prototype.layoutPatternChange = function (args) {
-        var target = args.target;
-        var bindingFields = target.id === 'orgPattern2' || target.id === 'orgPattern4' ? true : false;
-        var imageField = target.id === 'orgPattern3' || target.id === 'orgPattern4' ? true : false;
+    }
+
+    layoutPatternChange(args) {
+        const targetId = args.target.id;
+        const bindingFields = (targetId === 'orgPattern2' || targetId === 'orgPattern4');
+        const imageField = (targetId === 'orgPattern3' || targetId === 'orgPattern4');
         selectedItem.utilityMethods.updateLayout(selectedItem, bindingFields, imageField);
-    };
-    OrgChartPropertyBinding.prototype.getTooltipContent = function (args) {
-        if (args.target) {
-            if (args.target.classList.contains('db-employee-id')) {
+    }
+
+    getTooltipContent(args) {
+        if (args.target && args.target.classList) {
+            const classList = args.target.classList;
+            if (classList.contains('db-employee-id')) {
                 return 'Defines a unique column from the data source.';
             }
-            else if (args.target.classList.contains('db-supervisor-id')) {
+            if (classList.contains('db-supervisor-id')) {
                 return 'Defines a column that is used to identify the person to whom the employee reports to.';
             }
-            else if (args.target.classList.contains('db-nameField-id')) {
+            if (classList.contains('db-nameField-id')) {
                 return 'Defines a column that has an employee name, and it appears at the top of the shapes.';
             }
-            else if (args.target.classList.contains('db-bindingField-id')) {
+            if (classList.contains('db-bindingField-id')) {
                 return 'Defines columns that have employees’ contact information, and appear after the employees’ names in the shape.';
             }
-            else if (args.target.classList.contains('db-imageField-id')) {
+            if (classList.contains('db-imageField-id')) {
                 return 'Defines a column that has the picture of an employee.';
             }
-            else if (args.target.classList.contains('db-additionalField-id')) {
+            if (classList.contains('db-additionalField-id')) {
                 return 'Defines columns that should be displayed through a tooltip.';
             }
         }
         return '';
-    };
-    return OrgChartPropertyBinding;
-}());
+    }
+}
+
+export { DiagramClientSideEvents, DiagramPropertyBinding, MindMapPropertyBinding, OrgChartPropertyBinding };

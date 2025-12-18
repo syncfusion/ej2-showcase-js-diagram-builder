@@ -1,9 +1,10 @@
 /**
- *  Theme handler
+ * Theme handler
  */
-
-DiagramTheme = (function () {
-    function DiagramTheme(selectedItem) {
+import {MindMapUtilityMethods} from './mindmap';
+let themeClicked = false;
+class DiagramTheme {
+    constructor(selectedItem) {
         this.nodeOldStyles = [];
         this.connectorOldStyles = [];
         this.isThemeApplied = false;
@@ -107,184 +108,200 @@ DiagramTheme = (function () {
         ];
         this.selectedItem = selectedItem;
     }
-    DiagramTheme.prototype.getShapeType = function (shapeType) {
-        if (shapeType === 'Ellipse' || shapeType === 'Terminator') {
-            return 'shapeType2';
+
+    getShapeType(shapeType) {
+        switch (shapeType) {
+            case 'Ellipse':
+            case 'Terminator':
+                return 'shapeType2';
+            case 'Plus':
+            case 'Star':
+            case 'Diamond':
+            case 'Decision':
+                return 'shapeType4';
+            case 'Hexagon':
+            case 'Parallelogram':
+            case 'Trapezoid':
+            case 'Cylinder':
+            case 'DirectData':
+            case 'SequentialData':
+            case 'Sort':
+            case 'MultiDocument':
+            case 'Collate':
+            case 'Or':
+            case 'InternalStorage':
+            case 'SequentialAccessStorage':
+            case 'Annotation2':
+            case 'ManualInput':
+            case 'StoredData':
+                return 'shapeType3';
+            default:
+                return 'shapeType1';
         }
-        else if (shapeType === 'Plus' || shapeType === 'Star' || shapeType === 'Diamond' || shapeType === 'Decision') {
-            return 'shapeType4';
-        }
-        else if (shapeType === 'Hexagon' || shapeType === 'Parallelogram' || shapeType === 'Trapezoid' || shapeType === 'Cylinder') {
-            return 'shapeType3';
-        }
-        else if (shapeType === 'DirectData' || shapeType === 'SequentialData' || shapeType === 'Sort' || shapeType === 'MultiDocument' ||
-            shapeType === 'Collate' || shapeType === 'Or' || shapeType === 'InternalStorage' || shapeType === 'SequentialAccessStorage' ||
-            shapeType === 'Annotation2' || shapeType === 'ManualInput' || shapeType === 'StoredData') {
-            return 'shapeType3';
-        }
-        else {
-            return 'shapeType1';
-        }
-    };
-    DiagramTheme.prototype.getShapeStyle = function (shapeType, themeStyle) {
-        for (var i = 0; i < themeStyle.length; i++) {
-            if (themeStyle[i].type === shapeType) {
-                return themeStyle[i];
-            }
-        }
-        return null;
-    };
-    DiagramTheme.prototype.getThemeStyle = function (themeName) {
-        for (var i = 0; i < this.colorList.length; i++) {
-            if (this.colorList[i].themeName === themeName) {
-                return this.colorList[i];
-            }
-        }
-        return null;
-    };
-    DiagramTheme.prototype.themeMouseOver = function (args) {
-        var target = args.target;
-        var diagram = this.selectedItem.selectedDiagram;
+    }
+
+    getShapeStyle(shapeType, themeStyle) {
+        return themeStyle.find(style => style.type === shapeType) || null;
+    }
+
+    getThemeStyle(themeName) {
+        return this.colorList.find(theme => theme.themeName === themeName) || null;
+    }
+
+    themeMouseOver(args) {
+        themeClicked = false;
+        const { target } = args;
+        const { selectedDiagram: diagram } = this.selectedItem;
         if (target.className === 'db-theme-style-div') {
-            var themeName = target.children[0].className.replace('db-theme-style ', '');
+            const themeName = target.children[0].className.replace('db-theme-style ', '');
+            diagram.constraints = diagram.constraints & ~ej.diagrams.DiagramConstraints.UndoRedo;
+            diagram.dataBind();
             this.applyStyle(themeName);
             this.isThemeApplied = true;
+            diagram.constraints = diagram.constraints | ej.diagrams.DiagramConstraints.UndoRedo;
+            diagram.dataBind();
         }
-    };
-    DiagramTheme.prototype.applyOldStyle = function () {
-        var diagram = this.selectedItem.selectedDiagram;
-        diagram.historyManager.startGroupAction();
-        for (var i = 0; i < this.nodeOldStyles.length; i++) {
-            var themeStyle = this.nodeOldStyles[i];
-            var node = MindMapUtilityMethods.getNode(diagram.nodes, this.nodeOldStyles[i].name.toString());
-            node.style.fill = themeStyle.fill.toString();
-            node.style.strokeColor = themeStyle.border.toString();
-            if (node.annotations.length > 0) {
-                if (!node.annotations[0].hyperlink) {
+    }
+
+    applyOldStyle(args) {
+        if (!themeClicked) {
+            this.selectedItem.selectedDiagram.constraints = this.selectedItem.selectedDiagram.constraints & ~ej.diagrams.DiagramConstraints.UndoRedo;
+            this.selectedItem.selectedDiagram.dataBind();
+            const { selectedDiagram: diagram } = this.selectedItem;
+            diagram.historyManager.startGroupAction();
+
+            this.nodeOldStyles.forEach(themeStyle => {
+                const node = MindMapUtilityMethods.getNode(diagram.nodes, themeStyle.name.toString());
+                node.style.fill = themeStyle.fill.toString();
+                node.style.strokeColor = themeStyle.border.toString();
+                if (node.annotations.length > 0 && !node.annotations[0].hyperlink) {
                     node.annotations[0].style.color = themeStyle.fontColor;
                 }
-            }
-            diagram.dataBind();
+                diagram.dataBind();
+            });
+
+            this.connectorOldStyles.forEach(themeStyle => {
+                const connector = MindMapUtilityMethods.getConnector(diagram.connectors, themeStyle.name.toString());
+                connector.style.strokeColor = themeStyle.border.toString();
+                connector.sourceDecorator.style.fill = connector.sourceDecorator.style.strokeColor = themeStyle.border.toString();
+                connector.targetDecorator.style.fill = connector.targetDecorator.style.strokeColor = themeStyle.border.toString();
+                connector.type = themeStyle.type;
+                diagram.dataBind();
+            });
+
+            this.isThemeApplied = false;
+            diagram.historyManager.endGroupAction();
+            this.selectedItem.selectedDiagram.constraints = this.selectedItem.selectedDiagram.constraints | ej.diagrams.DiagramConstraints.UndoRedo;
+            this.selectedItem.selectedDiagram.dataBind();
         }
-        for (var i = 0; i < this.connectorOldStyles.length; i++) {
-            var themeStyle = this.connectorOldStyles[i];
-            var connector = MindMapUtilityMethods.getConnector(diagram.connectors, this.connectorOldStyles[i].name.toString());
-            connector.style.strokeColor = themeStyle.border.toString();
-            connector.sourceDecorator.style.fill = connector.sourceDecorator.style.strokeColor = themeStyle.border.toString();
-            connector.targetDecorator.style.fill = connector.targetDecorator.style.strokeColor = themeStyle.border.toString();
-            connector.type = themeStyle.type;
-            diagram.dataBind();
-        }
-        this.isThemeApplied = false;
-        diagram.historyManager.endGroupAction();
-    };
-    DiagramTheme.prototype.themeClick = function (args) {
-        var target = args.target;
+    }
+
+    themeClick(args) {
+        const { target } = args;
         if (target.classList.contains('db-theme-style-div')) {
-            var themeName = target.children[0].className.replace('db-theme-style ', '');
+            const themeName = target.children[0].className.replace('db-theme-style ', '');
             this.selectedItem.themeStyle = themeName;
+            this.applyOldStyle()
             this.applyStyle(themeName);
-            this.setNodeOldStyles();
-            for (var i = 0; i < this.colorList.length; i++) {
-                var element = document.getElementsByClassName(String(this.colorList[i].themeName))[0].parentNode;
+            this.colorList.forEach(({ themeName: currentThemeName }) => {
+                const element = document.getElementsByClassName(String(currentThemeName))[0].parentNode;
                 if (element.classList.contains('db-theme-focus-style-div')) {
                     element.classList.remove('db-theme-focus-style-div');
                 }
-                if (this.colorList[i].themeName === themeName) {
+                if (currentThemeName === themeName) {
                     element.classList.add('db-theme-focus-style-div');
                 }
-            }
+            });
+
             this.selectedItem.isModified = true;
         }
-    };
-    DiagramTheme.prototype.setNodeOldStyles = function () {
+        let themeDialog = document.getElementById('themeDialog').ej2_instances[0];
+        themeClicked = true;
+        themeDialog.hide();
+    }
+
+    setNodeOldStyles() {
         this.nodeOldStyles = [];
         this.connectorOldStyles = [];
-        var diagram = this.selectedItem.selectedDiagram;
+        const { selectedDiagram: diagram } = this.selectedItem;
         if (diagram.nodes.length > 0) {
-            var nodes = diagram.nodes;
-            for (var i = 0; i < nodes.length; i++) {
-                var node = nodes[i];
-                var style = { name: node.id, 'fill': node.style.fill, 'border': node.style.strokeColor };
-                if (node.annotations.length > 0) {
-                    if (!node.annotations[0].hyperlink) {
-                        style.fontColor = node.annotations[0].style.color;
-                    }
+            diagram.nodes.forEach(node => {
+                const style = {
+                    name: node.id,
+                    'fill': node.style.fill,
+                    'border': node.style.strokeColor
+                };
+                if (node.annotations.length > 0 && !node.annotations[0].hyperlink) {
+                    style.fontColor = node.annotations[0].style.color;
                 }
                 this.nodeOldStyles.push(style);
-            }
+            });
         }
         if (diagram.connectors.length > 0) {
-            var connectors = diagram.connectors;
-            for (var i = 0; i < connectors.length; i++) {
-                var connector = connectors[i];
-                this.connectorOldStyles.push({ name: connector.id, 'border': connector.style.strokeColor, 'type': connector.type });
-            }
+            diagram.connectors.forEach(connector => {
+                this.connectorOldStyles.push({
+                    name: connector.id,
+                    'border': connector.style.strokeColor,
+                    'type': connector.type
+                });
+            });
         }
-    };
-    DiagramTheme.prototype.applyStyle = function (themeName) {
-        var themeType = this.getThemeStyle(themeName);
-        var diagram = this.selectedItem.selectedDiagram;
+    }
+
+    applyStyle(themeName) {
+        const themeType = this.getThemeStyle(themeName);
+        const { selectedDiagram: diagram } = this.selectedItem;
         diagram.historyManager.startGroupAction();
         if (diagram.nodes.length > 0) {
-            var nodes = diagram.nodes;
-            for (var i = 0; i < nodes.length; i++) {
-                var node = nodes[i];
+            diagram.nodes.forEach(node => {
                 if (node.style.gradient) {
                     node.style.gradient.type = 'None';
                 }
                 this.applyThemeStyleforElement(node, themeType);
-            }
+            });
         }
         if (diagram.connectors.length > 0 && themeType) {
-            var connectors = diagram.connectors;
-            for (var i = 0; i < connectors.length; i++) {
-                var connector = connectors[i];
+            diagram.connectors.forEach(connector => {
                 this.applyThemeStyleforElement(connector, themeType);
-            }
+            });
             diagram.dataBind();
         }
         diagram.historyManager.endGroupAction();
-    };
-    DiagramTheme.prototype.applyThemeStyleforElement = function (element, themeName) {
-        var themeType;
-        if (!themeName) {
-            themeType = this.getThemeStyle(this.selectedItem.themeStyle);
-        }
-        else {
-            themeType = themeName;
-        }
-        var diagram = this.selectedItem.selectedDiagram;
+    }
+
+    applyThemeStyleforElement(element, themeName) {
+        const themeType = themeName || this.getThemeStyle(this.selectedItem.themeStyle);
+        const { selectedDiagram: diagram } = this.selectedItem;
         diagram.historyManager.startGroupAction();
+
         if (element instanceof ej.diagrams.Node) {
-            var node = element;
+            const node = element;
             if (node.shape) {
-                var shapeStyle = null;
+                let shapeStyle = null;
                 if (node.shape.type === 'Flow' || node.shape.type === 'Basic') {
-                    var shapeModel = node.shape;
+                    const shapeModel = node.shape;
                     shapeStyle = this.getShapeStyle(this.getShapeType(shapeModel.shape), themeType.themeStyle);
                     if (shapeStyle) {
                         node.style.fill = shapeStyle.fillColor;
                         node.style.strokeColor = shapeStyle.borderColor;
-                        if (node.annotations.length > 0) {
-                            if (!(node.annotations[0].hyperlink && node.annotations[0].hyperlink.link)) {
-                                node.annotations[0].style.color = shapeStyle.textColor;
-                            }
+                        if (node.annotations.length > 0 && !(node.annotations[0].hyperlink && node.annotations[0].hyperlink.link)) {
+                            node.annotations[0].style.color = shapeStyle.textColor;
                         }
                         diagram.dataBind();
                     }
                 }
             }
-        }
-        else if (element instanceof ej.diagrams.Connector) {
-            var connector = element;
+        } else if (element instanceof ej.diagrams.Connector) {
+            const connector = element;
             connector.style.strokeColor = themeType.lineColor.toString();
             connector.sourceDecorator.style.fill = connector.sourceDecorator.style.strokeColor = themeType.lineColor.toString();
             connector.targetDecorator.style.fill = connector.targetDecorator.style.strokeColor = themeType.lineColor.toString();
             connector.type = themeType.lineType;
             diagram.dataBind();
         }
+
         diagram.historyManager.endGroupAction();
-    };
-    return DiagramTheme;
-}());
+    }
+}
+
+export default DiagramTheme;
